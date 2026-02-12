@@ -37,19 +37,17 @@ RUN chown -R codemail:codemail /app
 # Switch to non-root user
 USER codemail
 
-# Expose SMTP ports
-# 25 - Standard SMTP (unencrypted or STARTTLS)
-# 465 - SMTPS (implicit TLS)
-# 587 - Submission (STARTTLS)
-EXPOSE 25 465 587
+# Expose SMTP port (using 2525 internally to avoid needing root)
+# Fly.io routes external 25/587 to internal 2525
+EXPOSE 2525
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD nc -z localhost ${SMTP_PORT:-25} || exit 1
+  CMD nc -z localhost ${SMTP_PORT:-2525} || exit 1
 
 # Environment variables (override in deployment)
 ENV NODE_ENV=production \
-    SMTP_PORT=25 \
+    SMTP_PORT=2525 \
     SMTP_HOST=0.0.0.0 \
     LOG_LEVEL=info
 

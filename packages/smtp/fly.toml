@@ -10,22 +10,22 @@ primary_region = "iad"
 [env]
   NODE_ENV = "production"
   LOG_LEVEL = "info"
-  SMTP_PORT = "25"
+  SMTP_PORT = "2525"
   SMTP_HOST = "0.0.0.0"
   WEBHOOK_URL = "https://codemail-web.vercel.app/api/inbound"
 
-# SMTP requires specific port handling
-# Port 25 - Standard SMTP
+# SMTP port routing - internal 2525, external 25/587
+# Port 25 - Standard SMTP (routed to internal 2525)
 [[services]]
-  internal_port = 25
+  internal_port = 2525
   protocol = "tcp"
 
   [[services.ports]]
     port = 25
 
-# Port 587 - Submission (STARTTLS)
+# Port 587 - Submission (also routed to internal 2525)
 [[services]]
-  internal_port = 587
+  internal_port = 2525
   protocol = "tcp"
 
   [[services.ports]]
