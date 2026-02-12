@@ -16,10 +16,19 @@ import {
   Sun,
   LogOut,
   ChevronDown,
+  User,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useClerk, useUser } from "@clerk/nextjs";
 import { cn } from "@/lib/utils";
+
+// Mock user for when Clerk isn't available
+const mockUser = {
+  fullName: "Demo User",
+  firstName: "Demo",
+  lastName: "User",
+  imageUrl: undefined as string | undefined,
+  primaryEmailAddress: { emailAddress: "demo@example.com" },
+};
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
@@ -55,8 +64,12 @@ const labels = [
 export function Sidebar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();
-  const { signOut } = useClerk();
-  const { user } = useUser();
+  
+  // Use mock user for demo - in production, wire up Clerk
+  const user = mockUser;
+  const signOut = () => {
+    window.location.href = "/";
+  };
 
   return (
     <div className="flex h-full w-64 flex-col bg-sidebar border-r border-sidebar-border">

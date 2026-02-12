@@ -15,7 +15,6 @@ import {
   LogOut,
 } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useClerk } from "@clerk/nextjs";
 import {
   CommandDialog,
   CommandEmpty,
@@ -32,7 +31,11 @@ export function CommandMenu() {
   const router = useRouter();
   const { open, setOpen } = useCommandMenu();
   const { theme, setTheme } = useTheme();
-  const { signOut } = useClerk();
+  
+  // Mock signOut - in production, wire up Clerk
+  const signOut = () => {
+    window.location.href = "/";
+  };
 
   const runCommand = (command: () => void) => {
     setOpen(false);

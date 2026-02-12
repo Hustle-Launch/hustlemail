@@ -1,9 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ComposeEditor } from "@/components/mail/compose-editor";
+import { Loader2 } from "lucide-react";
 
-export default function ComposePage() {
+function ComposeContent() {
   const searchParams = useSearchParams();
   const replyToId = searchParams.get("replyTo");
   const forwardId = searchParams.get("forward");
@@ -38,5 +40,19 @@ export default function ComposePage() {
       initialSubject={forwardId ? "Fwd: [codemail/api] Pull request #42" : undefined}
       onSend={handleSend}
     />
+  );
+}
+
+export default function ComposePage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex h-full items-center justify-center">
+          <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
+        </div>
+      }
+    >
+      <ComposeContent />
+    </Suspense>
   );
 }
