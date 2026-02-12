@@ -16,7 +16,6 @@
       "version": "0.1.0",
       "dependencies": {
         "@clerk/nextjs": "^6.37.0",
-        "@codemail/config": "workspace:*",
         "@radix-ui/react-avatar": "^1.1.0",
         "@radix-ui/react-dialog": "^1.1.0",
         "@radix-ui/react-dropdown-menu": "^2.1.0",
