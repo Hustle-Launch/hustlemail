@@ -1,6 +1,15 @@
 import { v } from "convex/values";
 import { mutation } from "./_generated/server";
-import { generateKeyPairSync, randomBytes } from "crypto";
+
+// Helper to generate a random selector string
+function generateSelector(): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let result = 'codemail';
+  for (let i = 0; i < 8; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
 
 // Create a new domain
 export const createDomain = mutation({
@@ -21,22 +30,17 @@ export const createDomain = mutation({
       throw new Error("Domain already registered");
     }
 
-    // Generate DKIM keys
-    const { publicKey, privateKey } = generateKeyPairSync("rsa", {
-      modulusLength: 2048,
-      publicKeyEncoding: { type: "spki", format: "pem" },
-      privateKeyEncoding: { type: "pkcs8", format: "pem" },
-    });
-
-    const dkimSelector = `codemail${Date.now()}`;
+    // DKIM keys will be generated via a Node.js action when domain is verified
+    // For now, use placeholders
+    const dkimSelector = generateSelector();
 
     const domainId = await ctx.db.insert("domains", {
       name: args.name,
       ownerId: identity.subject,
       status: "pending",
       dkimSelector,
-      dkimPublicKey: publicKey,
-      dkimPrivateKey: privateKey,
+      dkimPublicKey: "pending", // Generated when domain is verified
+      dkimPrivateKey: "pending", // Generated when domain is verified
       spfRecord: "v=spf1 include:_spf.resend.com ~all",
       dmarcRecord: `v=DMARC1; p=none; rua=mailto:dmarc@${args.name}`,
       config: {
