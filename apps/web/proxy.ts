@@ -4,6 +4,11 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/",
+  "/api/inbound",
+  "/api/dns/(.*)",
+  // Allow dashboard/mail in demo mode (no Clerk configured)
+  "/dashboard(.*)",
+  "/mail(.*)",
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
