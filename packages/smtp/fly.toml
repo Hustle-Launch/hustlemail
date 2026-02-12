@@ -1,0 +1,44 @@
+# fly.toml - CodeMail SMTP Server
+# Deploy: fly deploy
+
+app = "codemail-smtp"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  NODE_ENV = "production"
+  LOG_LEVEL = "info"
+  SMTP_PORT = "25"
+  SMTP_HOST = "0.0.0.0"
+  WEBHOOK_URL = "https://codemail-web.vercel.app/api/inbound"
+
+# SMTP requires specific port handling
+# Port 25 - Standard SMTP
+[[services]]
+  internal_port = 25
+  protocol = "tcp"
+
+  [[services.ports]]
+    port = 25
+
+# Port 587 - Submission (STARTTLS)
+[[services]]
+  internal_port = 587
+  protocol = "tcp"
+
+  [[services.ports]]
+    port = 587
+
+[http_service]
+  internal_port = 8080
+  force_https = false
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+
+[[vm]]
+  memory = "256mb"
+  cpu_kind = "shared"
+  cpus = 1

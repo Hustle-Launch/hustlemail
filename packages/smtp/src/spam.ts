@@ -191,6 +191,17 @@ export async function evaluateSpam(
     };
   }
 
+  // Skip AI evaluation if no API key configured
+  if (!config.openrouterApiKey) {
+    logger.info('No OpenRouter API key, skipping AI spam evaluation');
+    return {
+      isSpam: false,
+      score: 0,
+      category: 'ham',
+      reason: 'AI evaluation disabled (no API key)',
+    };
+  }
+
   // Stage 2: AI evaluation
   const aiResult = await evaluateWithAI(email, config);
   

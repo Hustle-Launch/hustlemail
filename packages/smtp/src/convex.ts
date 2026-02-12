@@ -58,12 +58,22 @@ export interface DomainInfo {
 export class ConvexClient {
   private baseUrl: string;
   private deployKey: string;
+  private demoMode: boolean;
 
   constructor(config: Config) {
-    // Convex URL format: https://xxx.convex.cloud
-    // HTTP action format: https://xxx.convex.site
-    this.baseUrl = config.convexUrl.replace('.convex.cloud', '.convex.site');
-    this.deployKey = config.convexDeployKey;
+    // Check if we're in demo mode (no real Convex configured)
+    this.demoMode = !config.convexUrl || config.convexUrl === 'demo';
+    
+    if (this.demoMode) {
+      console.log('ConvexClient running in DEMO MODE - no backend storage');
+      this.baseUrl = '';
+      this.deployKey = '';
+    } else {
+      // Convex URL format: https://xxx.convex.cloud
+      // HTTP action format: https://xxx.convex.site
+      this.baseUrl = config.convexUrl.replace('.convex.cloud', '.convex.site');
+      this.deployKey = config.convexDeployKey;
+    }
   }
 
   private async request<T>(
@@ -132,6 +142,27 @@ export class ConvexClient {
     mailboxId?: string;
     domain?: DomainInfo;
   }> {
+    // Demo mode - accept all recipients
+    if (this.demoMode) {
+      const [mailboxName, domainName] = email.toLowerCase().split('@');
+      logger.info('Demo mode: accepting recipient', { email });
+      return {
+        valid: true,
+        domainId: `demo-domain-${domainName}`,
+        mailboxId: `demo-mailbox-${mailboxName}`,
+        domain: {
+          _id: `demo-domain-${domainName}`,
+          name: domainName || 'demo.local',
+          status: 'active',
+          config: {
+            spamThreshold: 50,
+            largeFileStrategy: 'bounce',
+            maxAttachmentSize: 1024 * 1024,
+          },
+        },
+      };
+    }
+    
     const [mailboxName, domainName] = email.toLowerCase().split('@');
     
     if (!mailboxName || !domainName) {
@@ -177,6 +208,13 @@ export class ConvexClient {
     attachment: Attachment,
     domainId: string
   ): Promise<string> {
+    // Demo mode - return fake storage ID
+    if (this.demoMode) {
+      const fakeId = `demo-attachment-${Date.now()}-${Math.random().toString(36)}`;
+      logger.info('Demo mode: fake attachment upload', { filename: attachment.filename, fakeId });
+      return fakeId;
+    }
+    
     // Get upload URL
     const { uploadUrl } = await this.request<{ uploadUrl: string }>(
       '/smtp/getUploadUrl',
@@ -204,6 +242,18 @@ export class ConvexClient {
    * Store a message in Convex
    */
   async storeMessage(message: MessageInput): Promise<string> {
+    // Demo mode - just log the message
+    if (this.demoMode) {
+      const fakeId = `demo-msg-${Date.now()}-${Math.random().toString(36)}`;
+      logger.info('Demo mode: message received', {
+        id: fakeId,
+        from: message.from.address,
+        to: message.to.map(t => t.address),
+        subject: message.subject,
+      });
+      return fakeId;
+    }
+    
     const result = await this.request<{ messageId: string }>(
       '/smtp/storeMessage',
       message as unknown as Record<string, unknown>
@@ -218,6 +268,12 @@ export class ConvexClient {
     messageId: string,
     result: SpamResult
   ): Promise<void> {
+    // Demo mode - just log
+    if (this.demoMode) {
+      logger.info('Demo mode: spam evaluation', { messageId, ...result });
+      return;
+    }
+    
     await this.request('/smtp/logSpamEvaluation', {
       messageId,
       isSpam: result.isSpam,

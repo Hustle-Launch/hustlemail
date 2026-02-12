@@ -31,15 +31,23 @@ export interface Config {
   logLevel: 'debug' | 'info' | 'warn' | 'error';
 }
 
-function requireEnv(name: string): string {
+function getEnv(name: string, fallback?: string): string {
   const value = process.env[name];
-  if (!value) {
-    throw new Error(`Missing required environment variable: ${name}`);
+  if (!value && fallback === undefined) {
+    console.warn(`Warning: Missing environment variable: ${name}`);
+    return '';
   }
-  return value;
+  return value || fallback || '';
 }
 
 export function loadConfig(): Config {
+  // Demo mode - just start the server without Convex
+  const demoMode = process.env.DEMO_MODE === 'true' || !process.env.CONVEX_URL;
+  
+  if (demoMode) {
+    console.log('Starting SMTP server in DEMO MODE (no Convex backend)');
+  }
+  
   return {
     // Server
     port: parseInt(process.env.SMTP_PORT || '25', 10),
@@ -50,12 +58,12 @@ export function loadConfig(): Config {
     tlsKeyPath: process.env.TLS_KEY_PATH,
     tlsCertPath: process.env.TLS_CERT_PATH,
     
-    // Convex
-    convexUrl: requireEnv('CONVEX_URL'),
-    convexDeployKey: requireEnv('CONVEX_DEPLOY_KEY'),
+    // Convex - optional for demo mode
+    convexUrl: getEnv('CONVEX_URL', 'demo'),
+    convexDeployKey: getEnv('CONVEX_DEPLOY_KEY', 'demo'),
     
-    // Spam evaluation
-    openrouterApiKey: requireEnv('OPENROUTER_API_KEY'),
+    // Spam evaluation - optional
+    openrouterApiKey: getEnv('OPENROUTER_API_KEY', ''),
     spamModel: process.env.SPAM_MODEL || 'meta-llama/llama-3.2-3b-instruct:free',
     
     // Limits
