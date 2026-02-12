@@ -362,8 +362,12 @@ function createServer(): SMTPServer {
  * Main entry point
  */
 async function main(): Promise<void> {
+  console.log('[SMTP] Starting main()...');
+  
   // Load configuration
+  console.log('[SMTP] Loading config...');
   config = loadConfig();
+  console.log('[SMTP] Config loaded, setting log level...');
   setLogLevel(config.logLevel);
   
   logger.info('Starting CodeMail SMTP server', {
@@ -373,7 +377,9 @@ async function main(): Promise<void> {
   });
 
   // Initialize Convex client
+  console.log('[SMTP] Initializing Convex client...');
   convex = new ConvexClient(config);
+  console.log('[SMTP] Convex client initialized');
 
   // Create and start server
   const server = createServer();
@@ -400,6 +406,11 @@ async function main(): Promise<void> {
 
 // Run
 main().catch((error) => {
-  logger.error('Fatal error', { error });
+  // Error objects don't serialize to JSON properly
+  const errorDetails = error instanceof Error 
+    ? { name: error.name, message: error.message, stack: error.stack }
+    : error;
+  logger.error('Fatal error', { error: errorDetails });
+  console.error('Fatal error:', error);
   process.exit(1);
 });
