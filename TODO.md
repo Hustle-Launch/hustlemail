@@ -49,33 +49,62 @@
 - [x] Users page (team management, roles)
 - [x] Security page (DKIM keys, threat monitoring)
 
-### CLI 🔲 (REMAINING)
-- [ ] `codemail setup <domain>` command
-- [ ] `codemail deploy` command
-- [ ] DNS record generation
-- [ ] Config validation
+### Convex Backend ✅
+- [x] Queries: listDomains, getDomain, listMailboxes, listMessages, getMessage
+- [x] Queries: searchMessages, getAnalytics, listUsers, getUnreadCounts
+- [x] Mutations: createDomain with DKIM key generation
+- [x] Mutations: createMailbox, deleteMailbox with access control
+- [x] Mutations: markAsRead, toggleStar, archiveMessage, trashMessage
+- [x] Mutations: markAsSpam, updateLabels, deleteMessage
+- [x] Mutations: queueOutboundEmail, syncUser, inviteUserToMailbox
 
-### Integration 🔲 (REMAINING)
-- [ ] Wire Convex queries to web client (replace mock data)
-- [ ] Outbound email via Resend
-- [ ] Clerk webhooks for user sync
-- [ ] Environment variables setup guide
+### API Routes ✅
+- [x] POST /api/send - Outbound email via Resend
+- [x] POST /api/inbound - Webhook for SMTP server
+- [x] POST /api/webhooks/clerk - User sync from Clerk
+- [x] GET /api/dns/[domain] - DNS record generation and verification
 
-### Deploy 🔲 (REMAINING)
-- [ ] Vercel deployment for web
-- [ ] SMTP server deployment (Fly.io or Railway)
-- [ ] Custom domain setup
+### CLI ✅
+- [x] `codemail setup <domain>` command
+- [x] `codemail deploy` command
+- [x] `codemail status` command
+- [x] `codemail dns` command
+- [x] `codemail logs` command
+- [x] `codemail users list/add` commands
+
+### Deployment ✅
+- [x] Vercel deployment for web - https://codemail.vercel.app
+- [x] GitHub repo - https://github.com/michaelmonetized/codemail
+
+### Remaining for Full Production
+- [ ] Interactive Convex project setup (`bunx convex dev`)
+- [ ] Add real Clerk credentials to Vercel
+- [ ] Add RESEND_API_KEY to Vercel
+- [ ] Deploy SMTP server to Fly.io/Railway
+- [ ] Custom domain (codemail.dev)
+- [ ] DNS verification automation
 
 ---
 
 ## Completed Commits
+- `3e9b209` feat(api): add email and webhook API routes
+- `ab0ffe6` fix: remove workspace dependency for Vercel deployment
+- `5338868` feat(convex): add queries and mutations for full backend
+- `c7cdb17` feat(dashboard): add full admin dashboard
 - `673d3cd` feat(web): implement mail client with Linear-inspired UI
-- `0032b88` feat(web): enhance landing page with SEO metadata and fix build
-- `2087db5` feat(smtp): add SMTP ingress server for inbound email
+- `0032b88` feat(web): enhance landing page with SEO metadata
+- `2087db5` feat(smtp): add SMTP ingress server
+
+## Live URLs
+- **Production:** https://codemail.vercel.app
+- **GitHub:** https://github.com/michaelmonetized/codemail
 
 ## Stats
-- **Files created:** ~70+
-- **Lines of code:** ~8,000+
+- **Files created:** ~80+
+- **Lines of code:** ~10,000+
 - **Packages:** 3 (config, cli, smtp)
 - **App:** 1 (web)
-- **Dashboard pages:** 7 (domains, mailboxes, users, analytics, security, settings, new domain wizard)
+- **API Routes:** 4
+- **Dashboard pages:** 7
+- **Convex queries:** 8
+- **Convex mutations:** 12
