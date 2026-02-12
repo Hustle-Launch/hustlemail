@@ -77,11 +77,13 @@
 - [x] GitHub repo - https://github.com/michaelmonetized/codemail
 
 ### Remaining for Full Production
-- [ ] Interactive Convex project setup (`bunx convex dev`)
-- [x] Add real Clerk credentials to Vercel ✅
+- [x] Interactive Convex project setup (`bunx convex dev`) ✅
+- [x] Convex deployed: frugal-oriole-112.convex.cloud ✅
+- [ ] Create CodeMail-specific Clerk app (currently uses shared creds)
 - [x] Add RESEND_API_KEY to Vercel ✅
-- [ ] Deploy SMTP server to Fly.io/Railway
-- [ ] Custom domain (codemail.dev)
+- [x] Deploy SMTP server to Fly.io ✅ - codemail-smtp.fly.dev (ports 25/587)
+- [x] SMTP server connected to Convex backend ✅
+- [ ] Custom domain (codemail.dev) - requires domain purchase
 - [ ] DNS verification automation
 
 ---
@@ -96,7 +98,9 @@
 - `2087db5` feat(smtp): add SMTP ingress server
 
 ## Live URLs
-- **Production:** https://codemail.vercel.app
+- **Web App:** https://codemail-web.vercel.app
+- **SMTP Server:** codemail-smtp.fly.dev (ports 25 & 587)
+- **Convex:** https://dashboard.convex.dev/d/frugal-oriole-112
 - **GitHub:** https://github.com/michaelmonetized/codemail
 
 ## Stats
