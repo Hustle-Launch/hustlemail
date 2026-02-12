@@ -78,8 +78,8 @@
 
 ### Remaining for Full Production
 - [ ] Interactive Convex project setup (`bunx convex dev`)
-- [ ] Add real Clerk credentials to Vercel
-- [ ] Add RESEND_API_KEY to Vercel
+- [x] Add real Clerk credentials to Vercel ✅
+- [x] Add RESEND_API_KEY to Vercel ✅
 - [ ] Deploy SMTP server to Fly.io/Railway
 - [ ] Custom domain (codemail.dev)
 - [ ] DNS verification automation
