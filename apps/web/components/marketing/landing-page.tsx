@@ -17,23 +17,29 @@ import {
   Users,
   Server,
   Key,
+  GitBranch,
+  Code2,
 } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 
 // ============================================================================
-// ANIMATED TERMINAL COMPONENT
+// ANIMATED TERMINAL - Day 1 Founder Workflow
 // ============================================================================
 function AnimatedTerminal() {
   const [currentStep, setCurrentStep] = useState(0);
   const [showCursor, setShowCursor] = useState(true);
 
   const steps = [
-    { command: "npx codemail setup mycompany.com", delay: 2000 },
-    { output: "✓ Domain verified: mycompany.com", delay: 800 },
-    { output: "✓ DNS records configured", delay: 600 },
-    { output: "✓ DKIM keys generated", delay: 500 },
-    { output: "✓ mail.config.ts created", delay: 600 },
-    { final: "🚀 team@mycompany.com is ready!", delay: 1000 },
+    { command: "npx create-next-app myapp", delay: 1500 },
+    { output: "✓ Created myapp", delay: 600 },
+    { command: "cd myapp", delay: 800 },
+    { command: "npx mail setup mycompany.com", delay: 2000 },
+    { output: "✓ mail.config.ts created", delay: 500 },
+    { output: "✓ DNS records configured", delay: 400 },
+    { output: "✓ DKIM keys generated", delay: 400 },
+    { command: "git push", delay: 1200 },
+    { output: "✓ Deployed to Convex", delay: 500 },
+    { final: "🚀 founder@mycompany.com works. Cost: $0", delay: 1500 },
   ];
 
   useEffect(() => {
@@ -66,9 +72,9 @@ function AnimatedTerminal() {
             <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
             <div className="w-3 h-3 rounded-full bg-green-500/80" />
           </div>
-          <span className="text-xs text-zinc-500 ml-2 font-mono">terminal</span>
+          <span className="text-xs text-zinc-500 ml-2 font-mono">~/projects</span>
         </div>
-        <div className="p-4 font-mono text-sm min-h-[200px]">
+        <div className="p-4 font-mono text-sm min-h-[260px]">
           {steps.slice(0, currentStep + 1).map((step, index) => (
             <motion.div
               key={index}
@@ -98,6 +104,88 @@ function AnimatedTerminal() {
           ))}
         </div>
       </div>
+    </div>
+  );
+}
+
+// ============================================================================
+// CODE BLOCK - mail.config.ts
+// ============================================================================
+function MailConfigBlock({ stage }: { stage: "mvp" | "seed" | "scale" }) {
+  const configs = {
+    mvp: `// mail.config.ts — Day 1
+export const domain = "mycompany.com";
+
+export const mailboxes = [
+  "support", "founders", "noreply"
+];
+
+export const routes = {
+  support: ["founder1", "founder2"],
+  founders: ["founder1", "founder2"],
+  noreply: ["bounce"],
+};`,
+    seed: `// mail.config.ts — After Seed Round
+export const domain = "mycompany.com";
+
+export const mailboxes = [
+  "support", "team", "founders", 
+  "investors", "noreply"
+];
+
+export const routes = {
+  support: ["support_lead", "founder1"],
+  team: ["eng1", "eng2", "design1"],
+  founders: ["founder1", "founder2"],
+  investors: ["founder1", "cfo"],
+  noreply: ["bounce"],
+};
+
+// convex/auth.ts now uses WorkOS
+// No other changes needed.`,
+    scale: `// mail.config.ts — 50+ Employees
+export const domain = "mycompany.com";
+
+export const mailboxes = [
+  "support", "engineering", "sales",
+  "hr", "legal", "founders", "noreply",
+  "catch-all"
+];
+
+export const routes = {
+  support: ["support_team"],
+  engineering: ["cto", "eng_leads"],
+  sales: ["head_of_sales", "ae_team"],
+  hr: ["hr_lead"],
+  catch_all: ["founder1", "cto"],
+};
+
+// With Okta connected, new hires 
+// auto-appear in users table.
+// Update routes, push, done.`,
+  };
+
+  return (
+    <div className="rounded-xl overflow-hidden border border-accent-500/20 bg-black/40 backdrop-blur-sm">
+      <div className="flex items-center justify-between px-4 py-2.5 bg-accent-950/30 border-b border-white/5">
+        <div className="flex items-center gap-2">
+          <div className="flex gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+            <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
+          </div>
+          <span className="text-xs text-zinc-400 font-mono ml-2">mail.config.ts</span>
+        </div>
+        <div className="flex items-center gap-1 text-xs text-zinc-500">
+          <Code2 className="w-3 h-3" />
+          TypeScript
+        </div>
+      </div>
+      <pre className="p-4 text-xs overflow-x-auto">
+        <code className="font-mono leading-relaxed text-zinc-300 whitespace-pre">
+          {configs[stage]}
+        </code>
+      </pre>
     </div>
   );
 }
@@ -203,23 +291,30 @@ function PricingCard({
 }
 
 // ============================================================================
-// COMPARISON ROW
+// GROWTH STAGE TAB
 // ============================================================================
-function ComparisonRow({
-  feature,
-  google,
-  codemail,
+function GrowthStage({
+  stage,
+  active,
+  onClick,
+  label,
 }: {
-  feature: string;
-  google: string;
-  codemail: string;
+  stage: string;
+  active: boolean;
+  onClick: () => void;
+  label: string;
 }) {
   return (
-    <div className="grid grid-cols-3 gap-4 py-4 border-b border-white/5 text-sm">
-      <div className="text-zinc-300">{feature}</div>
-      <div className="text-zinc-500 text-center">{google}</div>
-      <div className="text-accent-400 text-center font-medium">{codemail}</div>
-    </div>
+    <button
+      onClick={onClick}
+      className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+        active
+          ? "bg-accent-500 text-white"
+          : "bg-white/5 text-zinc-400 hover:bg-white/10 hover:text-white"
+      }`}
+    >
+      {label}
+    </button>
   );
 }
 
@@ -234,6 +329,8 @@ export default function LandingPage() {
   });
   const heroOpacity = useTransform(scrollYProgress, [0, 1], [1, 0]);
   const heroY = useTransform(scrollYProgress, [0, 1], [0, 100]);
+  
+  const [growthStage, setGrowthStage] = useState<"mvp" | "seed" | "scale">("mvp");
 
   return (
     <main className="relative">
@@ -247,14 +344,14 @@ export default function LandingPage() {
             <span className="text-xl font-bold text-white">CodeMail</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            <a href="#why" className="text-sm text-zinc-400 hover:text-white transition-colors">
-              Why CodeMail
+            <a href="#how-it-works" className="text-sm text-zinc-400 hover:text-white transition-colors">
+              How It Works
+            </a>
+            <a href="#grows-with-you" className="text-sm text-zinc-400 hover:text-white transition-colors">
+              Growth
             </a>
             <a href="#pricing" className="text-sm text-zinc-400 hover:text-white transition-colors">
               Pricing
-            </a>
-            <a href="#compare" className="text-sm text-zinc-400 hover:text-white transition-colors">
-              vs Google
             </a>
           </div>
           <div className="flex items-center gap-3">
@@ -286,13 +383,12 @@ export default function LandingPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.1 }}
-              className="text-5xl md:text-6xl lg:text-7xl font-bold text-white leading-[1.1] mb-6"
+              className="text-4xl md:text-5xl lg:text-6xl font-bold text-white leading-[1.1] mb-6"
             >
-              Your startup deserves{" "}
+              Add email to your app like you add a database.{" "}
               <span className="bg-gradient-to-r from-accent-400 to-purple-400 bg-clip-text text-transparent">
-                real email
-              </span>{" "}
-              from day 1
+                Code first, config second, done.
+              </span>
             </motion.h1>
 
             <motion.p
@@ -301,8 +397,9 @@ export default function LandingPage() {
               transition={{ duration: 0.5, delay: 0.2 }}
               className="text-xl text-zinc-400 max-w-2xl mx-auto mb-4 leading-relaxed"
             >
-              Real companies have company email. You shouldn&apos;t have to pay Google 
-              $600/year for 5 mailboxes while you&apos;re still figuring out if your idea works.
+              Email shouldn&apos;t be a business problem. It should be a configuration problem.
+              Your <code className="text-accent-400 bg-accent-500/10 px-1.5 py-0.5 rounded">mail.config.ts</code> lives 
+              in your repo, deploys with your app, grows with your company.
             </motion.p>
             
             <motion.p
@@ -311,8 +408,7 @@ export default function LandingPage() {
               transition={{ duration: 0.5, delay: 0.25 }}
               className="text-lg text-zinc-500 max-w-xl mx-auto mb-8"
             >
-              Get team@yourcompany.com working in 5 minutes. Unlimited mailboxes. 
-              Per-domain pricing — your team grows, your bill doesn&apos;t.
+              From MVP to IPO, your mail.config.ts grows with you.
             </motion.p>
 
             <motion.div
@@ -328,27 +424,15 @@ export default function LandingPage() {
                 Start Free Forever
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </a>
-            </motion.div>
-
-            {/* Social proof */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-              className="mt-12 flex items-center justify-center gap-8 text-sm text-zinc-500"
-            >
-              <div className="flex items-center gap-2">
-                <Building2 className="w-4 h-4" />
-                <span>For MVPs & startups</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Zap className="w-4 h-4" />
-                <span>Setup in 5 minutes</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4" />
-                <span>Unlimited mailboxes</span>
-              </div>
+              <a
+                href="https://github.com/michaelmonetized/codemail"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-xl border border-white/10 transition-all"
+              >
+                <Github className="w-5 h-5" />
+                View Source
+              </a>
             </motion.div>
           </div>
 
@@ -364,8 +448,8 @@ export default function LandingPage() {
         </motion.div>
       </section>
 
-      {/* WHY CODEMAIL */}
-      <section id="why" className="py-32 relative">
+      {/* HOW IT WORKS */}
+      <section id="how-it-works" className="py-32 relative">
         <div className="max-w-7xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -374,91 +458,117 @@ export default function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Built for founders, not IT departments
+              Day 1 founder workflow
             </h2>
             <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
               You have an idea. You want it to feel real. Real companies have company email.
+              You shouldn&apos;t pay $600/year for 5 mailboxes while figuring out if it works.
             </p>
           </motion.div>
 
           <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <FeatureCard
-              icon={Rocket}
-              title="Launch in 5 Minutes"
-              description="One command sets up your domain. DNS records configured, DKIM keys generated, mail.config.ts created — you're ready to receive email."
+              icon={Terminal}
+              title="One command setup"
+              description="npx mail setup mycompany.com — creates mail.config.ts, configures DNS, generates DKIM keys. You're done."
               delay={0}
             />
             <FeatureCard
-              icon={Users}
-              title="Unlimited Mailboxes"
-              description="team@, support@, hello@, founders@, investors@ — create as many as you need. No per-seat pricing, ever."
+              icon={GitBranch}
+              title="Lives in your repo"
+              description="mail.config.ts is version controlled, reviewed in PRs, deploys with git push. No more wrestling with dashboards."
               delay={0.05}
             />
             <FeatureCard
               icon={DollarSign}
-              title="Per-Domain, Not Per-User"
-              description="Pay per domain, not per mailbox. Your team grows from 2 to 20? Your email bill stays exactly the same."
+              title="Free on Convex free tier"
+              description="Your email infrastructure runs on Convex. Their free tier covers thousands of emails. Cost: $0."
               delay={0.1}
             />
             <FeatureCard
-              icon={Shield}
-              title="Real Infrastructure"
-              description="DKIM signing, SPF records, DMARC — your emails land in inboxes, not spam folders. Reputation warming included."
+              icon={Users}
+              title="Unlimited mailboxes"
+              description="support@, founders@, investors@, noreply@ — create as many as you need. No per-seat pricing."
               delay={0.15}
             />
             <FeatureCard
-              icon={Bot}
-              title="AI Spam Filtering"
-              description="Modern ML-based spam detection via OpenRouter. Understands context, not just keywords. No 20-year-old Bayesian filters."
+              icon={Shield}
+              title="Real infrastructure"
+              description="DKIM signing, SPF records, spam filtering. Your emails land in inboxes, not spam folders."
               delay={0.2}
             />
             <FeatureCard
-              icon={Terminal}
-              title="Config as Code"
-              description="Your mail.config.ts lives in your repo. Version-controlled, auditable, deploys with your app. No more dashboard wrestling."
+              icon={Zap}
+              title="Auth is orthogonal"
+              description="Start with mock users, swap in WorkOS/Clerk/Okta when you close your seed round. Config doesn't change."
               delay={0.25}
             />
           </div>
         </div>
       </section>
 
-      {/* COMPARISON */}
-      <section id="compare" className="py-32 relative">
-        <div className="max-w-4xl mx-auto px-6">
+      {/* GROWS WITH YOU */}
+      <section id="grows-with-you" className="py-32 relative">
+        <div className="max-w-5xl mx-auto px-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="text-center mb-16"
+            className="text-center mb-12"
           >
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Stop paying enterprise prices
+              From MVP to IPO
             </h2>
-            <p className="text-xl text-zinc-400">
-              Google Workspace is built for Fortune 500s. You&apos;re building an MVP.
+            <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
+              Your mail.config.ts grows with you. Same file, same patterns, from 2 founders to 500 employees.
             </p>
           </motion.div>
 
+          {/* Stage selector */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="rounded-2xl border border-white/10 bg-white/[0.02] p-8"
+            className="flex justify-center gap-2 mb-8"
           >
-            <div className="grid grid-cols-3 gap-4 pb-4 border-b border-white/10 text-sm font-medium">
-              <div className="text-zinc-400">Feature</div>
-              <div className="text-zinc-400 text-center">Google Workspace</div>
-              <div className="text-accent-400 text-center">CodeMail</div>
-            </div>
-            <ComparisonRow feature="5 team mailboxes" google="$360/year" codemail="$96/year (or $0 BYO)" />
-            <ComparisonRow feature="10 team mailboxes" google="$720/year" codemail="$96/year (or $0 BYO)" />
-            <ComparisonRow feature="20 team mailboxes" google="$1,440/year" codemail="$96/year (or $0 BYO)" />
-            <ComparisonRow feature="Pricing model" google="$6/user/month" codemail="$8/domain/month" />
-            <ComparisonRow feature="Setup time" google="Hours + DNS headaches" codemail="5 minutes" />
-            <ComparisonRow feature="Config location" google="Admin console" codemail="mail.config.ts in your repo" />
-            <ComparisonRow feature="Spam filtering" google="Basic" codemail="AI-powered (OpenRouter)" />
-            <ComparisonRow feature="Self-host option" google="No" codemail="Yes (OSS)" />
+            <GrowthStage
+              stage="mvp"
+              active={growthStage === "mvp"}
+              onClick={() => setGrowthStage("mvp")}
+              label="Day 1 — MVP"
+            />
+            <GrowthStage
+              stage="seed"
+              active={growthStage === "seed"}
+              onClick={() => setGrowthStage("seed")}
+              label="Seed Round"
+            />
+            <GrowthStage
+              stage="scale"
+              active={growthStage === "scale"}
+              onClick={() => setGrowthStage("scale")}
+              label="50+ Employees"
+            />
           </motion.div>
+
+          {/* Config display */}
+          <motion.div
+            key={growthStage}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <MailConfigBlock stage={growthStage} />
+          </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0 }}
+            whileInView={{ opacity: 1 }}
+            viewport={{ once: true }}
+            className="text-center text-zinc-500 mt-8"
+          >
+            Update routes, push, done. With Okta/WorkOS connected, new hires auto-appear in your users table.
+          </motion.p>
         </div>
       </section>
 
@@ -637,11 +747,11 @@ export default function LandingPage() {
 
             <div className="relative">
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                Your idea deserves real email
+                Email shouldn&apos;t be a business problem
               </h2>
               <p className="text-xl text-zinc-400 mb-8 max-w-2xl mx-auto">
-                Stop sending from gmail. Get team@yourcompany.com in 5 minutes.
-                Free forever with BYO keys, or $8/mo for fully managed.
+                It should be a configuration problem. Add email to your app like you add a database.
+                Code first, config second, done.
               </p>
               <a
                 href="/sign-up"
