@@ -14,8 +14,9 @@ import {
   Sparkles,
   Building2,
   Rocket,
-  CreditCard,
   Users,
+  Server,
+  Key,
 } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 
@@ -31,7 +32,7 @@ function AnimatedTerminal() {
     { output: "✓ Domain verified: mycompany.com", delay: 800 },
     { output: "✓ DNS records configured", delay: 600 },
     { output: "✓ DKIM keys generated", delay: 500 },
-    { output: "✓ Mailboxes created: team, support, hello", delay: 600 },
+    { output: "✓ mail.config.ts created", delay: 600 },
     { final: "🚀 team@mycompany.com is ready!", delay: 1000 },
   ];
 
@@ -143,6 +144,7 @@ function PricingCard({
   features,
   highlighted = false,
   delay = 0,
+  cta = "Get Started",
 }: {
   name: string;
   price: string;
@@ -151,6 +153,7 @@ function PricingCard({
   features: string[];
   highlighted?: boolean;
   delay?: number;
+  cta?: string;
 }) {
   return (
     <motion.div
@@ -193,7 +196,7 @@ function PricingCard({
             : "bg-white/5 text-white hover:bg-white/10 border border-white/10"
         }`}
       >
-        Get Started
+        {cta}
       </a>
     </motion.div>
   );
@@ -259,7 +262,7 @@ export default function LandingPage() {
               Sign In
             </a>
             <a href="/sign-up" className="px-4 py-2 bg-accent-500 hover:bg-accent-600 text-white text-sm font-medium rounded-lg transition-colors">
-              Get Started Free
+              Get Started
             </a>
           </div>
         </div>
@@ -276,7 +279,7 @@ export default function LandingPage() {
               className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-500/10 border border-accent-500/20 text-accent-400 text-sm mb-6"
             >
               <Sparkles className="w-4 h-4" />
-              Company email for founders, not enterprises
+              Infrastructure for founders
             </motion.div>
 
             <motion.h1
@@ -308,7 +311,8 @@ export default function LandingPage() {
               transition={{ duration: 0.5, delay: 0.25 }}
               className="text-lg text-zinc-500 max-w-xl mx-auto mb-8"
             >
-              Get team@yourcompany.com working in 5 minutes. Unlimited mailboxes. $8/month.
+              Get team@yourcompany.com working in 5 minutes. Unlimited mailboxes. 
+              Per-domain pricing — your team grows, your bill doesn&apos;t.
             </motion.p>
 
             <motion.div
@@ -321,7 +325,7 @@ export default function LandingPage() {
                 href="/sign-up"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-accent-500 hover:bg-accent-600 text-white font-semibold rounded-xl transition-all group"
               >
-                Start Free — No Credit Card
+                Start Free Forever
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </a>
             </motion.div>
@@ -381,37 +385,37 @@ export default function LandingPage() {
             <FeatureCard
               icon={Rocket}
               title="Launch in 5 Minutes"
-              description="One command to set up your domain. We handle DNS, DKIM, SPF — all the stuff that usually takes a weekend."
+              description="One command sets up your domain. DNS records configured, DKIM keys generated, mail.config.ts created — you're ready to receive email."
               delay={0}
             />
             <FeatureCard
               icon={Users}
               title="Unlimited Mailboxes"
-              description="team@, support@, hello@, founders@, investors@ — create as many as you need. No per-seat pricing."
+              description="team@, support@, hello@, founders@, investors@ — create as many as you need. No per-seat pricing, ever."
               delay={0.05}
             />
             <FeatureCard
               icon={DollarSign}
-              title="$8/month. Period."
-              description="One domain, unlimited mailboxes, unlimited users. Not $6/user/month like Google Workspace."
+              title="Per-Domain, Not Per-User"
+              description="Pay per domain, not per mailbox. Your team grows from 2 to 20? Your email bill stays exactly the same."
               delay={0.1}
             />
             <FeatureCard
               icon={Shield}
-              title="Real Email Infrastructure"
-              description="DKIM signing, SPF records, spam filtering — your emails land in inboxes, not spam folders."
+              title="Real Infrastructure"
+              description="DKIM signing, SPF records, DMARC — your emails land in inboxes, not spam folders. Reputation warming included."
               delay={0.15}
             />
             <FeatureCard
               icon={Bot}
               title="AI Spam Filtering"
-              description="Modern ML-based spam detection that actually understands context, not 20-year-old Bayesian filters."
+              description="Modern ML-based spam detection via OpenRouter. Understands context, not just keywords. No 20-year-old Bayesian filters."
               delay={0.2}
             />
             <FeatureCard
               icon={Terminal}
-              title="Developer Friendly"
-              description="Webhooks for new emails, API access, config-as-code. Integrate with your app, not around it."
+              title="Config as Code"
+              description="Your mail.config.ts lives in your repo. Version-controlled, auditable, deploys with your app. No more dashboard wrestling."
               delay={0.25}
             />
           </div>
@@ -446,14 +450,14 @@ export default function LandingPage() {
               <div className="text-zinc-400 text-center">Google Workspace</div>
               <div className="text-accent-400 text-center">CodeMail</div>
             </div>
-            <ComparisonRow feature="5 team mailboxes" google="$360/year" codemail="$96/year" />
-            <ComparisonRow feature="10 team mailboxes" google="$720/year" codemail="$96/year" />
+            <ComparisonRow feature="5 team mailboxes" google="$360/year" codemail="$96/year (or $0 BYO)" />
+            <ComparisonRow feature="10 team mailboxes" google="$720/year" codemail="$96/year (or $0 BYO)" />
+            <ComparisonRow feature="20 team mailboxes" google="$1,440/year" codemail="$96/year (or $0 BYO)" />
+            <ComparisonRow feature="Pricing model" google="$6/user/month" codemail="$8/domain/month" />
             <ComparisonRow feature="Setup time" google="Hours + DNS headaches" codemail="5 minutes" />
-            <ComparisonRow feature="Pricing model" google="Per user/month" codemail="Per domain (unlimited users)" />
-            <ComparisonRow feature="Spam filtering" google="✓" codemail="✓ AI-powered" />
-            <ComparisonRow feature="Custom domain" google="✓" codemail="✓" />
-            <ComparisonRow feature="API & Webhooks" google="Complex setup" codemail="Built in" />
-            <ComparisonRow feature="Target audience" google="Enterprises" codemail="Founders & startups" />
+            <ComparisonRow feature="Config location" google="Admin console" codemail="mail.config.ts in your repo" />
+            <ComparisonRow feature="Spam filtering" google="Basic" codemail="AI-powered (OpenRouter)" />
+            <ComparisonRow feature="Self-host option" google="No" codemail="Yes (OSS)" />
           </motion.div>
         </div>
       </section>
@@ -468,60 +472,152 @@ export default function LandingPage() {
             className="text-center mb-16"
           >
             <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-              Simple pricing for real startups
+              Simple, honest pricing
             </h2>
             <p className="text-xl text-zinc-400 max-w-2xl mx-auto">
-              Pay per domain, not per user. Your team grows? Your email bill doesn&apos;t.
+              Pay per domain, not per user. Every tier gets unlimited mailboxes, routes, and rules.
             </p>
           </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
+            {/* Free Forever */}
             <PricingCard
-              name="Free"
+              name="Free Forever"
               price="$0"
-              period="forever"
+              period="/mo — forever"
               description="Bring your own API keys"
               features={[
                 "Unlimited mailboxes",
-                "Unlimited forwarding",
-                "Basic spam filtering",
+                "Unlimited domains",
+                "Unlimited routes & rules",
+                "BYO Resend (outbound)",
+                "BYO OpenRouter (spam AI)",
+                "BYO Convex (backend)",
+                "BYO Uploadthing (files)",
                 "Community support",
-                "You provide Resend API key",
               ]}
+              cta="Start Free"
               delay={0}
             />
+
+            {/* Simple */}
             <PricingCard
-              name="Startup"
+              name="Simple"
               price="$8"
               period="/domain/month"
-              description="Everything you need to look legit"
+              description="Managed infrastructure"
               features={[
                 "Unlimited mailboxes",
-                "Unlimited team members",
-                "AI spam detection",
-                "Web mail interface",
-                "Webhook integrations",
+                "Unlimited routes & rules",
+                "Managed Convex instance",
+                "Managed SMTP/IMAP",
+                "Managed spam AI",
+                "Managed Resend (outbound)",
+                "Reputation warming",
                 "Email support",
               ]}
               highlighted
+              cta="Get Started"
               delay={0.1}
             />
+
+            {/* Managed */}
             <PricingCard
-              name="Growth"
+              name="Managed"
               price="$80"
               period="/domain/month"
-              description="For teams that need more"
+              description="White glove service"
               features={[
-                "Everything in Startup",
-                "Dedicated IP address",
-                "Priority deliverability",
+                "Everything in Simple",
+                "Dedicated SMTP/IMAP",
+                "Dedicated IP warming",
+                "1TB file bandwidth/mo",
                 "Migration assistance",
-                "Priority support",
-                "Slack channel access",
+                "DNS config assistance",
+                "mail.config.ts review",
+                "Priority Slack support",
               ]}
+              cta="Contact Us"
               delay={0.2}
             />
+
+            {/* Self-Hosted */}
+            <PricingCard
+              name="Self-Hosted"
+              price="Free"
+              period="OSS"
+              description="Run it yourself"
+              features={[
+                "Full source code",
+                "SMTP ingress server",
+                "IMAP proxy server",
+                "Web mail client",
+                "Spam eval pipeline",
+                "CLI tooling",
+                "Deploy anywhere",
+                "Community support",
+              ]}
+              cta="View on GitHub"
+              delay={0.3}
+            />
           </div>
+
+          {/* BYO Keys Explainer */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-16 max-w-3xl mx-auto"
+          >
+            <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8">
+              <div className="flex items-center gap-3 mb-4">
+                <Key className="w-6 h-6 text-accent-400" />
+                <h3 className="text-lg font-semibold text-white">What&apos;s &quot;Bring Your Own Keys&quot;?</h3>
+              </div>
+              <p className="text-zinc-400 mb-6">
+                The Free Forever tier lets you own every dependency. You bring API keys from these providers 
+                (all have generous free tiers) and pay them directly. We charge nothing.
+              </p>
+              <div className="grid sm:grid-cols-2 gap-4 text-sm">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+                    <Mail className="w-4 h-4 text-zinc-400" />
+                  </div>
+                  <div>
+                    <div className="text-white font-medium">Resend</div>
+                    <div className="text-zinc-500">Outbound email sending</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+                    <Bot className="w-4 h-4 text-zinc-400" />
+                  </div>
+                  <div>
+                    <div className="text-white font-medium">OpenRouter</div>
+                    <div className="text-zinc-500">AI spam filtering</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+                    <Server className="w-4 h-4 text-zinc-400" />
+                  </div>
+                  <div>
+                    <div className="text-white font-medium">Convex</div>
+                    <div className="text-zinc-500">Real-time backend</div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
+                    <Shield className="w-4 h-4 text-zinc-400" />
+                  </div>
+                  <div>
+                    <div className="text-white font-medium">Uploadthing</div>
+                    <div className="text-zinc-500">Large file storage</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </motion.div>
         </div>
       </section>
 
@@ -541,17 +637,17 @@ export default function LandingPage() {
 
             <div className="relative">
               <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-                Your idea deserves a real email address
+                Your idea deserves real email
               </h2>
               <p className="text-xl text-zinc-400 mb-8 max-w-2xl mx-auto">
-                Stop sending from gmail. Start sending from yourcompany.com. 
-                Setup takes 5 minutes. No credit card required.
+                Stop sending from gmail. Get team@yourcompany.com in 5 minutes.
+                Free forever with BYO keys, or $8/mo for fully managed.
               </p>
               <a
                 href="/sign-up"
                 className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-white text-black font-semibold rounded-xl hover:bg-zinc-100 transition-all group"
               >
-                Get Started Free
+                Start Free Forever
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </a>
             </div>
@@ -570,7 +666,7 @@ export default function LandingPage() {
               <span className="text-xl font-bold text-white">CodeMail</span>
             </div>
             <p className="text-sm text-zinc-500">
-              © {new Date().getFullYear()} CodeMail. Email infrastructure for founders.
+              © {new Date().getFullYear()} CodeMail. Infrastructure for founders.
             </p>
             <div className="flex items-center gap-6">
               <a href="/privacy" className="text-sm text-zinc-500 hover:text-white transition-colors">
