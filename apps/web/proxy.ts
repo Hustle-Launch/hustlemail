@@ -1,27 +1,10 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-const isPublicRoute = createRouteMatcher([
-  // Auth pages
-  "/sign-in(.*)",
-  "/sign-up(.*)",
-  // Marketing pages (no auth required)
-  "/",
-  "/pricing(.*)",
-  "/features(.*)",
-  "/about(.*)",
-  "/blog(.*)",
-  "/terms(.*)",
-  "/privacy(.*)",
-  // API endpoints
-  "/api/inbound",
-  "/api/dns/(.*)",
-  // Allow dashboard/mail in demo mode (no Clerk configured)
-  "/dashboard(.*)",
-  "/mail(.*)",
-]);
+// ONLY protect the (private) route group - everything else is public by default
+const isPrivateRoute = createRouteMatcher(["/(private)(.*)"]);
 
 export default clerkMiddleware(async (auth, request) => {
-  if (!isPublicRoute(request)) {
+  if (isPrivateRoute(request)) {
     await auth.protect();
   }
 });
