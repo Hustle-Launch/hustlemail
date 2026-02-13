@@ -1,9 +1,18 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
 const isPublicRoute = createRouteMatcher([
+  // Auth pages
   "/sign-in(.*)",
   "/sign-up(.*)",
+  // Marketing pages (no auth required)
   "/",
+  "/pricing(.*)",
+  "/features(.*)",
+  "/about(.*)",
+  "/blog(.*)",
+  "/terms(.*)",
+  "/privacy(.*)",
+  // API endpoints
   "/api/inbound",
   "/api/dns/(.*)",
   // Allow dashboard/mail in demo mode (no Clerk configured)
