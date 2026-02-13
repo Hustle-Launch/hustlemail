@@ -109,85 +109,118 @@ function AnimatedTerminal() {
 }
 
 // ============================================================================
-// CODE BLOCK - mail.config.ts
+// CODE BLOCKS - Day 1 / Seed / Scale
 // ============================================================================
-function MailConfigBlock({ stage }: { stage: "mvp" | "seed" | "scale" }) {
-  const configs = {
-    mvp: `// mail.config.ts — Day 1
-export const domain = "mycompany.com";
+function CodeBlockDay1() {
+  return (
+    <div className="space-y-4">
+      {/* Terminal commands */}
+      <div className="rounded-xl overflow-hidden border border-white/10 bg-black/60">
+        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border-b border-white/5">
+          <span className="text-xs text-zinc-500 font-mono">terminal</span>
+        </div>
+        <pre className="p-4 text-sm font-mono text-zinc-300 overflow-x-auto">
+{`# Create new project
+npx create-next-app myapp
+cd myapp
 
-export const mailboxes = [
-  "support", "founders", "noreply"
-];
-
+# Add mail
+npx mail setup mycompany.com`}</pre>
+      </div>
+      
+      {/* mail.config.ts */}
+      <div className="rounded-xl overflow-hidden border border-accent-500/20 bg-black/40">
+        <div className="flex items-center gap-2 px-4 py-2 bg-accent-950/30 border-b border-white/5">
+          <span className="text-xs text-zinc-400 font-mono">mail.config.ts appears:</span>
+        </div>
+        <pre className="p-4 text-sm font-mono text-zinc-300 overflow-x-auto">
+{`export const domain = "mycompany.com";
+export const mailboxes = ["support", "founders", "noreply"];
 export const routes = {
   support: ["founder1", "founder2"],
   founders: ["founder1", "founder2"],
   noreply: ["bounce"],
-};`,
-    seed: `// mail.config.ts — After Seed Round
-export const domain = "mycompany.com";
-
-export const mailboxes = [
-  "support", "team", "founders", 
-  "investors", "noreply"
-];
-
-export const routes = {
-  support: ["support_lead", "founder1"],
-  team: ["eng1", "eng2", "design1"],
-  founders: ["founder1", "founder2"],
-  investors: ["founder1", "cfo"],
-  noreply: ["bounce"],
-};
-
-// convex/auth.ts now uses WorkOS
-// No other changes needed.`,
-    scale: `// mail.config.ts — 50+ Employees
-export const domain = "mycompany.com";
-
-export const mailboxes = [
-  "support", "engineering", "sales",
-  "hr", "legal", "founders", "noreply",
-  "catch-all"
-];
-
-export const routes = {
-  support: ["support_team"],
-  engineering: ["cto", "eng_leads"],
-  sales: ["head_of_sales", "ae_team"],
-  hr: ["hr_lead"],
-  catch_all: ["founder1", "cto"],
-};
-
-// With Okta connected, new hires 
-// auto-appear in users table.
-// Update routes, push, done.`,
-  };
-
-  return (
-    <div className="rounded-xl overflow-hidden border border-accent-500/20 bg-black/40 backdrop-blur-sm">
-      <div className="flex items-center justify-between px-4 py-2.5 bg-accent-950/30 border-b border-white/5">
-        <div className="flex items-center gap-2">
-          <div className="flex gap-1.5">
-            <div className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
-            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
-            <div className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
-          </div>
-          <span className="text-xs text-zinc-400 font-mono ml-2">mail.config.ts</span>
-        </div>
-        <div className="flex items-center gap-1 text-xs text-zinc-500">
-          <Code2 className="w-3 h-3" />
-          TypeScript
-        </div>
+};`}</pre>
       </div>
-      <pre className="p-4 text-xs overflow-x-auto">
-        <code className="font-mono leading-relaxed text-zinc-300 whitespace-pre">
-          {configs[stage]}
-        </code>
-      </pre>
+
+      {/* convex/auth.ts */}
+      <div className="rounded-xl overflow-hidden border border-white/10 bg-black/40">
+        <div className="flex items-center gap-2 px-4 py-2 bg-white/5 border-b border-white/5">
+          <span className="text-xs text-zinc-500 font-mono">convex/auth.ts</span>
+        </div>
+        <pre className="p-4 text-sm font-mono text-zinc-300 overflow-x-auto">
+{`export const mockUsers = [
+  { id: "1", name: "founder1" },
+  { id: "2", name: "founder2" },
+];`}</pre>
+      </div>
+
+      <p className="text-sm text-zinc-500 text-center">
+        Deploy with <code className="text-accent-400">git push</code> — founder1@mycompany.com works. Cost: $0.
+      </p>
     </div>
   );
+}
+
+function CodeBlockSeed() {
+  return (
+    <div className="space-y-4">
+      <p className="text-zinc-400 text-center text-sm mb-4">When they close their seed round:</p>
+      
+      {/* convex/auth.ts with WorkOS */}
+      <div className="rounded-xl overflow-hidden border border-accent-500/20 bg-black/40">
+        <div className="flex items-center gap-2 px-4 py-2 bg-accent-950/30 border-b border-white/5">
+          <span className="text-xs text-zinc-400 font-mono">convex/auth.ts</span>
+        </div>
+        <pre className="p-4 text-sm font-mono text-zinc-300 overflow-x-auto">
+{`import { ConvexAuth } from "@convex-dev/auth";
+import WorkOS from "@convex-dev/auth/providers/WorkOS";
+
+export const { auth, signIn, signOut } = ConvexAuth({
+  providers: [WorkOS],
+});
+
+// mail.config.ts doesn't change. SMTP doesn't change.
+// They just add real SSO for the team. Done.`}</pre>
+      </div>
+    </div>
+  );
+}
+
+function CodeBlockScale() {
+  return (
+    <div className="space-y-4">
+      <p className="text-zinc-400 text-center text-sm mb-4">When they hire 50 people:</p>
+      
+      {/* Expanded mail.config.ts */}
+      <div className="rounded-xl overflow-hidden border border-accent-500/20 bg-black/40">
+        <div className="flex items-center gap-2 px-4 py-2 bg-accent-950/30 border-b border-white/5">
+          <span className="text-xs text-zinc-400 font-mono">mail.config.ts</span>
+        </div>
+        <pre className="p-4 text-sm font-mono text-zinc-300 overflow-x-auto">
+{`export const mailboxes = [
+  "support", "engineering", "sales", "founder", "hr",
+  "noreply", "catch-all"
+];
+export const routes = {
+  support: ["support_lead", "support_team_1", "support_team_2"],
+  engineering: ["cto", "eng_lead", "eng_team"],
+  sales: ["head_of_sales", "ae1", "ae2"],
+  catch_all: ["founder", "cto", "head_of_sales"],
+};
+
+// With WorkOS/Okta connected, new hires auto-appear
+// mail.config.ts route definitions are source of truth
+// Add new team? Update routes, push, done.`}</pre>
+      </div>
+    </div>
+  );
+}
+
+function MailConfigBlock({ stage }: { stage: "mvp" | "seed" | "scale" }) {
+  if (stage === "mvp") return <CodeBlockDay1 />;
+  if (stage === "seed") return <CodeBlockSeed />;
+  return <CodeBlockScale />;
 }
 
 // ============================================================================
