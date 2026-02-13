@@ -79,7 +79,9 @@
 ### Remaining for Full Production
 - [x] Interactive Convex project setup (`bunx convex dev`) ✅
 - [x] Convex deployed: frugal-oriole-112.convex.cloud ✅
-- [ ] Create CodeMail-specific Clerk app (currently uses shared creds)
+- [x] Create CodeMail-specific Clerk app ✅
+- [x] Fixed Clerk publishable key typo in Vercel (flowmng→flowing) ✅
+- [x] Configured Clerk fallback development host to Vercel URL ✅
 - [x] Add RESEND_API_KEY to Vercel ✅
 - [x] Deploy SMTP server to Fly.io ✅ - codemail-smtp.fly.dev (ports 25/587)
 - [x] SMTP server connected to Convex backend ✅
