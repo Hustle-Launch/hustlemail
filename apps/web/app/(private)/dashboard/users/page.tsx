@@ -1,3 +1,8 @@
+/**
+ * Users management page for domain access control.
+ * @module app/(private)/dashboard/users/page
+ */
+
 "use client";
 
 import { useState } from "react";

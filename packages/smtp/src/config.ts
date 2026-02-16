@@ -1,36 +1,49 @@
 /**
- * SMTP Server Configuration
- * 
+ * SMTP Server Configuration.
  * All values can be overridden via environment variables.
  */
 
+/** Configuration interface for the SMTP server. */
 export interface Config {
-  // Server
+  /** Server port number. */
   port: number;
+  /** Server host address. */
   host: string;
+  /** Whether to use TLS. */
   secure: boolean;
   
-  // TLS (optional for port 25, required for 465)
+  /** Path to TLS private key file. */
   tlsKeyPath?: string;
+  /** Path to TLS certificate file. */
   tlsCertPath?: string;
   
-  // Convex
+  /** Convex deployment URL. */
   convexUrl: string;
-  convexDeployKey: string;
+  /** Shared secret for SMTP <-> Convex authentication. */
+  smtpSharedSecret: string;
   
-  // Spam evaluation
+  /** OpenRouter API key for spam detection. */
   openrouterApiKey: string;
+  /** AI model to use for spam evaluation. */
   spamModel: string;
   
-  // Limits
-  maxMessageSize: number; // bytes
-  maxAttachmentSize: number; // bytes for inline storage
-  connectionTimeout: number; // ms
+  /** Maximum message size in bytes. */
+  maxMessageSize: number;
+  /** Maximum attachment size for inline storage in bytes. */
+  maxAttachmentSize: number;
+  /** Connection timeout in milliseconds. */
+  connectionTimeout: number;
   
-  // Logging
+  /** Logging level. */
   logLevel: 'debug' | 'info' | 'warn' | 'error';
 }
 
+/**
+ * Gets an environment variable with optional fallback.
+ * @param name - The environment variable name.
+ * @param fallback - Optional fallback value if not set.
+ * @returns The environment variable value or fallback.
+ */
 function getEnv(name: string, fallback?: string): string {
   const value = process.env[name];
   if (!value && fallback === undefined) {
@@ -40,6 +53,10 @@ function getEnv(name: string, fallback?: string): string {
   return value || fallback || '';
 }
 
+/**
+ * Loads and returns the server configuration from environment variables.
+ * @returns The complete server configuration.
+ */
 export function loadConfig(): Config {
   // Demo mode - just start the server without Convex
   const demoMode = process.env.DEMO_MODE === 'true' || !process.env.CONVEX_URL;
@@ -60,7 +77,7 @@ export function loadConfig(): Config {
     
     // Convex - optional for demo mode
     convexUrl: getEnv('CONVEX_URL', 'demo'),
-    convexDeployKey: getEnv('CONVEX_DEPLOY_KEY', 'demo'),
+    smtpSharedSecret: getEnv('SMTP_SHARED_SECRET', 'demo'),
     
     // Spam evaluation - optional
     openrouterApiKey: getEnv('OPENROUTER_API_KEY', ''),

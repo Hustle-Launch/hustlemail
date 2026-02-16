@@ -1,7 +1,23 @@
-import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+/**
+ * Message-specific queries and mutations.
+ * Real-time message operations with filtering and threading support.
+ */
 
-// Get messages for a mailbox with real-time subscription
+import { v } from "convex/values";
+import { mutation, query, internalMutation } from "./_generated/server";
+import {
+  requireMailboxAccess,
+  requireMessageAccess,
+} from "./lib/auth";
+
+/**
+ * Lists messages for a mailbox with real-time subscription.
+ * @param mailboxId - The mailbox to fetch messages from.
+ * @param limit - Maximum number of messages to return.
+ * @param cursor - Optional cursor for pagination.
+ * @param filter - Filter type (all, unread, starred, archived, spam, trash).
+ * @returns Array of filtered messages sorted by date descending.
+ */
 export const list = query({
   args: {
     mailboxId: v.id("mailboxes"),
@@ -19,6 +35,9 @@ export const list = query({
     ),
   },
   handler: async (ctx, args) => {
+    // Verify user has access to this mailbox
+    await requireMailboxAccess(ctx, args.mailboxId);
+
     const limit = args.limit ?? 50;
     const filter = args.filter ?? "all";
 
@@ -55,27 +74,54 @@ export const list = query({
   },
 });
 
-// Get a single message
+/**
+ * Retrieves a single message by ID.
+ * @param id - The message ID.
+ * @returns The message or null if not found.
+ * @throws Error if user doesn't have access to the message's mailbox.
+ */
 export const get = query({
   args: { id: v.id("messages") },
   handler: async (ctx, args) => {
-    return await ctx.db.get(args.id);
+    // Verify user has access to this message's mailbox
+    const { message } = await requireMessageAccess(ctx, args.id);
+    return message;
   },
 });
 
-// Get thread messages
+/**
+ * Retrieves all messages in a thread.
+ * @param threadId - The thread ID to fetch messages for.
+ * @param mailboxId - The mailbox to verify access for.
+ * @returns Array of messages in the thread sorted by date ascending.
+ */
 export const getThread = query({
-  args: { threadId: v.string() },
+  args: {
+    threadId: v.string(),
+    mailboxId: v.id("mailboxes"),
+  },
   handler: async (ctx, args) => {
-    return await ctx.db
+    // Verify user has access to this mailbox
+    await requireMailboxAccess(ctx, args.mailboxId);
+
+    const messages = await ctx.db
       .query("messages")
       .withIndex("by_thread", (q) => q.eq("threadId", args.threadId))
       .order("asc")
       .collect();
+
+    // Only return messages from the specified mailbox
+    return messages.filter((m) => m.mailboxId === args.mailboxId);
   },
 });
 
-// Search messages
+/**
+ * Searches messages by subject within a mailbox.
+ * @param mailboxId - The mailbox to search in.
+ * @param query - The search query string.
+ * @param limit - Maximum number of results.
+ * @returns Array of matching messages.
+ */
 export const search = query({
   args: {
     mailboxId: v.id("mailboxes"),
@@ -83,6 +129,9 @@ export const search = query({
     limit: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
+    // Verify user has access to this mailbox
+    await requireMailboxAccess(ctx, args.mailboxId);
+
     const results = await ctx.db
       .query("messages")
       .withSearchIndex("search_messages", (q) =>
@@ -94,8 +143,23 @@ export const search = query({
   },
 });
 
-// Create a new message (called by SMTP ingress)
-export const create = mutation({
+/**
+ * Creates a new message (called by SMTP ingress).
+ * This is an internal mutation - not callable by users directly.
+ * @param domainId - The domain ID.
+ * @param mailboxId - The destination mailbox ID.
+ * @param messageId - RFC 5322 Message-ID.
+ * @param from - Sender address object.
+ * @param to - Array of recipient address objects.
+ * @param subject - Email subject.
+ * @param bodyText - Plain text body.
+ * @param bodyHtml - HTML body.
+ * @param attachments - Array of attachment metadata.
+ * @param date - Email date timestamp.
+ * @param isSpam - Whether the message was flagged as spam.
+ * @returns The ID of the created message.
+ */
+export const create = internalMutation({
   args: {
     domainId: v.id("domains"),
     mailboxId: v.id("mailboxes"),
@@ -197,67 +261,103 @@ export const create = mutation({
   },
 });
 
-// Mark message as read/unread
+/**
+ * Marks a message as read or unread.
+ * @param id - The message ID.
+ * @param isRead - Whether the message is read.
+ */
 export const markRead = mutation({
   args: {
     id: v.id("messages"),
     isRead: v.boolean(),
   },
   handler: async (ctx, args) => {
+    // Verify user has access to this message (readonly is fine for marking read)
+    await requireMessageAccess(ctx, args.id);
     await ctx.db.patch(args.id, { isRead: args.isRead });
   },
 });
 
-// Toggle star
+/**
+ * Toggles the starred status of a message.
+ * @param id - The message ID.
+ */
 export const toggleStar = mutation({
   args: { id: v.id("messages") },
   handler: async (ctx, args) => {
-    const message = await ctx.db.get(args.id);
-    if (message) {
-      await ctx.db.patch(args.id, { isStarred: !message.isStarred });
-    }
+    // Verify user has access (member or owner for modifications)
+    const { message } = await requireMessageAccess(ctx, args.id, "member");
+    await ctx.db.patch(args.id, { isStarred: !message.isStarred });
   },
 });
 
-// Archive message
+/**
+ * Archives a message.
+ * @param id - The message ID.
+ */
 export const archive = mutation({
   args: { id: v.id("messages") },
   handler: async (ctx, args) => {
+    // Verify user has member access
+    await requireMessageAccess(ctx, args.id, "member");
     await ctx.db.patch(args.id, { isArchived: true });
   },
 });
 
-// Move to trash
+/**
+ * Moves a message to trash.
+ * @param id - The message ID.
+ */
 export const trash = mutation({
   args: { id: v.id("messages") },
   handler: async (ctx, args) => {
+    // Verify user has member access
+    await requireMessageAccess(ctx, args.id, "member");
     await ctx.db.patch(args.id, { isTrashed: true });
   },
 });
 
-// Mark as spam
+/**
+ * Marks a message as spam.
+ * @param id - The message ID.
+ */
 export const markSpam = mutation({
   args: { id: v.id("messages") },
   handler: async (ctx, args) => {
+    // Verify user has member access
+    await requireMessageAccess(ctx, args.id, "member");
     await ctx.db.patch(args.id, { isSpam: true });
   },
 });
 
-// Add/remove label
+/**
+ * Updates the labels on a message.
+ * @param id - The message ID.
+ * @param labels - Array of label strings to set.
+ */
 export const updateLabels = mutation({
   args: {
     id: v.id("messages"),
     labels: v.array(v.string()),
   },
   handler: async (ctx, args) => {
+    // Verify user has member access
+    await requireMessageAccess(ctx, args.id, "member");
     await ctx.db.patch(args.id, { labels: args.labels });
   },
 });
 
-// Get unread count for mailbox
+/**
+ * Gets the unread message count for a mailbox.
+ * @param mailboxId - The mailbox ID.
+ * @returns The count of unread, non-archived, non-spam, non-trashed messages.
+ */
 export const unreadCount = query({
   args: { mailboxId: v.id("mailboxes") },
   handler: async (ctx, args) => {
+    // Verify user has access to this mailbox
+    await requireMailboxAccess(ctx, args.mailboxId);
+
     const messages = await ctx.db
       .query("messages")
       .withIndex("by_mailbox_unread", (q) =>

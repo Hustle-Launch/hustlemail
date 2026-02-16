@@ -1,3 +1,8 @@
+/**
+ * separator component from shadcn/ui.
+ * @see https://ui.shadcn.com/docs/components/separator
+ */
+
 "use client";
 
 import * as React from "react";

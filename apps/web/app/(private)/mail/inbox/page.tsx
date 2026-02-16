@@ -1,3 +1,9 @@
+/**
+ * Inbox page displaying the primary email inbox.
+ * Features message list with filtering and keyboard shortcuts.
+ * @module app/(private)/mail/inbox/page
+ */
+
 "use client";
 
 import { useState } from "react";
@@ -16,7 +22,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { MessageList } from "@/components/mail/message-list";
 
-// Mock data - replace with Convex query
+/** Mock messages for demo - replace with Convex query in production. */
 const mockMessages = [
   {
     _id: "1",
@@ -108,6 +114,10 @@ const mockMessages = [
   },
 ];
 
+/**
+ * Inbox page component with message list and controls.
+ * @returns The inbox page element.
+ */
 export default function InboxPage() {
   const router = useRouter();
   const [messages, setMessages] = useState(mockMessages);

@@ -1,3 +1,8 @@
+/**
+ * Compose page for creating new emails.
+ * @module app/(private)/mail/compose/page
+ */
+
 "use client";
 
 import { Suspense } from "react";

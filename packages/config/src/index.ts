@@ -1,6 +1,11 @@
+/**
+ * @codemail/config - Mail configuration schemas and utilities.
+ * Provides Zod schemas for validating mail.config.ts files.
+ */
+
 import { z } from "zod";
 
-// Zod schemas for mail.config.ts validation
+/** Schema for spam detection configuration. */
 export const SpamConfigSchema = z.object({
   provider: z.enum(["openrouter", "none"]).default("openrouter"),
   model: z.string().default("meta-llama/llama-3.2-3b-instruct:free"),
@@ -9,6 +14,7 @@ export const SpamConfigSchema = z.object({
   allowlist: z.array(z.string()).optional(),
 });
 
+/** Schema for attachment handling configuration. */
 export const AttachmentConfigSchema = z.object({
   maxSize: z.union([z.string(), z.number()]).default("10mb"),
   largeFileStrategy: z.enum(["store", "bounce", "byo"]).default("bounce"),
@@ -16,6 +22,7 @@ export const AttachmentConfigSchema = z.object({
   storageProvider: z.enum(["convex", "s3", "uploadthing"]).default("convex"),
 });
 
+/** Schema for outbound email configuration. */
 export const OutboundConfigSchema = z.object({
   provider: z.enum(["resend"]).default("resend"),
   apiKey: z.string().optional(), // From env if not provided
@@ -23,11 +30,13 @@ export const OutboundConfigSchema = z.object({
   replyTo: z.string().optional(),
 });
 
+/** Schema for email routing rules. */
 export const RouteSchema = z.record(
   z.string(),
   z.union([z.string(), z.array(z.string())])
 );
 
+/** Schema for mailbox configuration (simple string or object). */
 export const MailboxSchema = z.union([
   z.string(),
   z.object({
@@ -38,6 +47,7 @@ export const MailboxSchema = z.union([
   }),
 ]);
 
+/** Schema for the complete mail.config.ts file. */
 export const MailConfigSchema = z.object({
   domain: z.string().min(1),
   mailboxes: z.array(MailboxSchema),
@@ -55,25 +65,48 @@ export const MailConfigSchema = z.object({
   catchAll: z.string().optional(),
 });
 
-// TypeScript types derived from schemas
+/** Spam detection configuration type. */
 export type SpamConfig = z.infer<typeof SpamConfigSchema>;
+
+/** Attachment handling configuration type. */
 export type AttachmentConfig = z.infer<typeof AttachmentConfigSchema>;
+
+/** Outbound email configuration type. */
 export type OutboundConfig = z.infer<typeof OutboundConfigSchema>;
+
+/** Email routing rules type. */
 export type Route = z.infer<typeof RouteSchema>;
+
+/** Mailbox configuration type. */
 export type Mailbox = z.infer<typeof MailboxSchema>;
+
+/** Complete mail configuration type. */
 export type MailConfig = z.infer<typeof MailConfigSchema>;
 
-// Helper function to define a mail config with type safety
+/**
+ * Defines a mail config with type safety.
+ * @param config - The mail configuration object.
+ * @returns The validated mail configuration.
+ */
 export function defineMailConfig(config: MailConfig): MailConfig {
   return MailConfigSchema.parse(config);
 }
 
-// Parse and validate a config object
+/**
+ * Parses and validates a config object.
+ * @param config - The unknown config object to parse.
+ * @returns The validated mail configuration.
+ * @throws ZodError if validation fails.
+ */
 export function parseMailConfig(config: unknown): MailConfig {
   return MailConfigSchema.parse(config);
 }
 
-// Validate a config and return errors if invalid
+/**
+ * Validates a config and returns errors if invalid.
+ * @param config - The unknown config object to validate.
+ * @returns Object with success flag and either data or errors.
+ */
 export function validateMailConfig(config: unknown): {
   success: boolean;
   data?: MailConfig;
@@ -86,7 +119,12 @@ export function validateMailConfig(config: unknown): {
   return { success: false, errors: result.error };
 }
 
-// Parse size string to bytes
+/**
+ * Parses a size string to bytes.
+ * @param size - Size string (e.g., "10mb") or number.
+ * @returns Size in bytes.
+ * @throws Error if size format is invalid.
+ */
 export function parseSize(size: string | number): number {
   if (typeof size === "number") return size;
 
@@ -107,7 +145,11 @@ export function parseSize(size: string | number): number {
   return Math.floor(value * multipliers[unit]);
 }
 
-// Normalize mailbox config to consistent format
+/**
+ * Normalizes a mailbox config to a consistent format.
+ * @param mailbox - The mailbox config (string or object).
+ * @returns Normalized mailbox object with all fields.
+ */
 export function normalizeMailbox(mailbox: Mailbox): {
   name: string;
   displayName?: string;
@@ -125,19 +167,33 @@ export function normalizeMailbox(mailbox: Mailbox): {
   };
 }
 
-// Get all mailbox names from config
+/**
+ * Gets all mailbox names from a config.
+ * @param config - The mail configuration.
+ * @returns Array of mailbox names.
+ */
 export function getMailboxNames(config: MailConfig): string[] {
   return config.mailboxes.map((m) =>
     typeof m === "string" ? m : m.name
   );
 }
 
-// Check if a mailbox exists in config
+/**
+ * Checks if a mailbox exists in a config.
+ * @param config - The mail configuration.
+ * @param name - The mailbox name to check.
+ * @returns True if the mailbox exists.
+ */
 export function hasMailbox(config: MailConfig, name: string): boolean {
   return getMailboxNames(config).includes(name);
 }
 
-// Get route recipients for a mailbox
+/**
+ * Gets route recipients for a mailbox.
+ * @param config - The mail configuration.
+ * @param mailbox - The mailbox name to get routes for.
+ * @returns Array of recipient mailbox names.
+ */
 export function getRouteRecipients(
   config: MailConfig,
   mailbox: string
@@ -157,7 +213,11 @@ export function getRouteRecipients(
   return Array.isArray(route) ? route : [route];
 }
 
-// Generate example mail.config.ts content
+/**
+ * Generates example mail.config.ts content for a domain.
+ * @param domain - The domain name.
+ * @returns TypeScript config file content as a string.
+ */
 export function generateExampleConfig(domain: string): string {
   return `import { defineMailConfig } from "@codemail/config";
 

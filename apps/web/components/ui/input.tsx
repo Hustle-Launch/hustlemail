@@ -1,3 +1,8 @@
+/**
+ * input component from shadcn/ui.
+ * @see https://ui.shadcn.com/docs/components/input
+ */
+
 import * as React from "react";
 import { cn } from "@/lib/utils";
 

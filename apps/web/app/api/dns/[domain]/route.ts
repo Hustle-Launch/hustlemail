@@ -1,6 +1,13 @@
+/**
+ * DNS verification API route.
+ * Generates required DNS records and verifies current configuration.
+ * @module app/api/dns/[domain]/route
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import dns from "dns/promises";
 
+/** Result of checking a single DNS record. */
 interface DnsRecordCheck {
   type: string;
   host: string;
@@ -9,6 +16,12 @@ interface DnsRecordCheck {
   status: "pass" | "fail" | "pending";
 }
 
+/**
+ * GET handler for DNS record generation and verification.
+ * @param request - The incoming request.
+ * @param params - Route parameters containing the domain.
+ * @returns JSON with required records, current checks, and verification status.
+ */
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ domain: string }> }

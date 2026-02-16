@@ -1,3 +1,9 @@
+/**
+ * Individual message view page.
+ * Dynamic route for viewing a single message.
+ * @module app/(private)/mail/[id]/page
+ */
+
 "use client";
 
 import { useState } from "react";

@@ -1,3 +1,8 @@
+/**
+ * Starred folder page displaying starred messages.
+ * @module app/(private)/mail/starred/page
+ */
+
 "use client";
 
 import { Star } from "lucide-react";

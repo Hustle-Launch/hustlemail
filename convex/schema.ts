@@ -1,8 +1,13 @@
+/**
+ * Convex database schema for CodeMail.
+ * Defines all tables, indexes, and search indexes for the email system.
+ */
+
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
 export default defineSchema({
-  // Domain configuration
+  /** Domain configuration for email routing and authentication. */
   domains: defineTable({
     name: v.string(), // e.g., "mycompany.com"
     ownerId: v.string(), // Clerk user ID
@@ -33,7 +38,7 @@ export default defineSchema({
     .index("by_name", ["name"])
     .index("by_owner", ["ownerId"]),
 
-  // Mailboxes within a domain
+  /** Mailboxes within a domain (email addresses). */
   mailboxes: defineTable({
     domainId: v.id("domains"),
     name: v.string(), // e.g., "support", "hello"
@@ -49,7 +54,7 @@ export default defineSchema({
     .index("by_domain", ["domainId"])
     .index("by_domain_name", ["domainId", "name"]),
 
-  // Users who can access mailboxes
+  /** Users who can access mailboxes. */
   users: defineTable({
     clerkId: v.string(),
     email: v.string(),
@@ -60,7 +65,7 @@ export default defineSchema({
     .index("by_clerk_id", ["clerkId"])
     .index("by_email", ["email"]),
 
-  // User access to mailboxes
+  /** User access permissions to mailboxes. */
   mailboxAccess: defineTable({
     userId: v.id("users"),
     mailboxId: v.id("mailboxes"),
@@ -71,7 +76,7 @@ export default defineSchema({
     .index("by_mailbox", ["mailboxId"])
     .index("by_user_mailbox", ["userId", "mailboxId"]),
 
-  // Email messages
+  /** Email messages stored in the system. */
   messages: defineTable({
     domainId: v.id("domains"),
     mailboxId: v.id("mailboxes"),
@@ -145,7 +150,7 @@ export default defineSchema({
       filterFields: ["mailboxId", "isArchived", "isSpam", "isTrashed"],
     }),
 
-  // Spam evaluations (for debugging/tuning)
+  /** Spam evaluations for debugging and tuning. */
   spamEvaluations: defineTable({
     messageId: v.id("messages"),
     isSpam: v.boolean(),
@@ -156,7 +161,7 @@ export default defineSchema({
     evaluatedAt: v.number(),
   }).index("by_message", ["messageId"]),
 
-  // Outbound email queue
+  /** Outbound email queue for sending. */
   outboundQueue: defineTable({
     domainId: v.id("domains"),
     mailboxId: v.id("mailboxes"),
@@ -189,7 +194,7 @@ export default defineSchema({
     .index("by_status", ["status", "createdAt"])
     .index("by_domain", ["domainId", "createdAt"]),
 
-  // Activity log for audit
+  /** Activity log for audit trails. */
   activityLog: defineTable({
     domainId: v.id("domains"),
     userId: v.optional(v.id("users")),

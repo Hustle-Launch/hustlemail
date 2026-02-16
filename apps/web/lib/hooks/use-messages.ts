@@ -1,30 +1,53 @@
+/**
+ * Hooks for managing email messages.
+ * Provides mock data for demo purposes.
+ */
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
 
-// Types
+/** Email message type. */
 export interface Message {
+  /** Unique message ID. */
   _id: string;
+  /** Sender information. */
   from: { name?: string; address: string };
+  /** Recipients. */
   to: { name?: string; address: string }[];
+  /** Email subject. */
   subject: string;
+  /** Preview snippet. */
   snippet: string;
+  /** Plain text body. */
   bodyText?: string;
+  /** HTML body. */
   bodyHtml?: string;
+  /** Email date timestamp. */
   date: number;
+  /** When message was received. */
   receivedAt: number;
+  /** Whether message has been read. */
   isRead: boolean;
+  /** Whether message is starred. */
   isStarred: boolean;
+  /** Whether message is archived. */
   isArchived: boolean;
+  /** Whether message is in trash. */
   isTrashed: boolean;
+  /** Whether message is spam. */
   isSpam: boolean;
+  /** Whether message was sent (outbound). */
   isSent: boolean;
+  /** Message labels. */
   labels: string[];
+  /** Attachment metadata. */
   attachments: { filename: string; contentType: string; size: number }[];
+  /** Thread ID for grouping. */
   threadId?: string;
 }
 
-// Mock data for demo
+/** Mock messages for demo purposes. */
 const mockMessages: Message[] = [
   {
     _id: "1",
@@ -118,8 +141,14 @@ const mockMessages: Message[] = [
   },
 ];
 
+/** Folder types for filtering messages. */
 type Folder = "inbox" | "sent" | "starred" | "archive" | "trash" | "spam";
 
+/**
+ * Hook for fetching and managing messages in a folder.
+ * @param folder - The folder to display messages from.
+ * @returns Object with messages array, loading state, and action functions.
+ */
 export function useMessages(folder: Folder = "inbox") {
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
@@ -153,24 +182,41 @@ export function useMessages(folder: Folder = "inbox") {
     return () => clearTimeout(timer);
   }, [folder]);
 
+  /**
+   * Marks a message as read or unread.
+   * @param id - Message ID.
+   * @param isRead - New read state.
+   */
   const markAsRead = useCallback((id: string, isRead: boolean) => {
     setMessages((prev) =>
       prev.map((m) => (m._id === id ? { ...m, isRead } : m))
     );
   }, []);
 
+  /**
+   * Toggles the starred state of a message.
+   * @param id - Message ID.
+   */
   const toggleStar = useCallback((id: string) => {
     setMessages((prev) =>
       prev.map((m) => (m._id === id ? { ...m, isStarred: !m.isStarred } : m))
     );
   }, []);
 
+  /**
+   * Archives a message.
+   * @param id - Message ID.
+   */
   const archive = useCallback((id: string) => {
     setMessages((prev) =>
       prev.map((m) => (m._id === id ? { ...m, isArchived: true } : m))
     );
   }, []);
 
+  /**
+   * Moves a message to trash.
+   * @param id - Message ID.
+   */
   const trash = useCallback((id: string) => {
     setMessages((prev) =>
       prev.map((m) => (m._id === id ? { ...m, isTrashed: true } : m))
@@ -187,6 +233,11 @@ export function useMessages(folder: Folder = "inbox") {
   };
 }
 
+/**
+ * Hook for fetching a single message by ID.
+ * @param id - The message ID to fetch.
+ * @returns Object with message data and loading state.
+ */
 export function useMessage(id: string) {
   const [message, setMessage] = useState<Message | null>(null);
   const [loading, setLoading] = useState(true);
@@ -205,6 +256,10 @@ export function useMessage(id: string) {
   return { message, loading };
 }
 
+/**
+ * Hook for getting the unread message count.
+ * @returns The number of unread messages in the inbox.
+ */
 export function useUnreadCount() {
   const [count, setCount] = useState(0);
 

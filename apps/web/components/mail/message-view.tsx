@@ -1,3 +1,9 @@
+/**
+ * Message view component for displaying a single email or thread.
+ * Supports thread expansion, attachments, and reply actions.
+ * @module components/mail/message-view
+ */
+
 "use client";
 
 import { useState } from "react";
@@ -36,6 +42,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+/** Email attachment metadata. */
 interface Attachment {
   filename: string;
   contentType: string;
@@ -44,6 +51,7 @@ interface Attachment {
   externalUrl?: string;
 }
 
+/** Full message data structure for detail view. */
 interface Message {
   _id: string;
   from: { name?: string; address: string };
@@ -60,10 +68,12 @@ interface Message {
   threadId?: string;
 }
 
+/** Thread message with expansion state. */
 interface ThreadMessage extends Message {
   isExpanded?: boolean;
 }
 
+/** Props for the MessageView component. */
 interface MessageViewProps {
   message: Message;
   threadMessages?: ThreadMessage[];
@@ -74,6 +84,11 @@ interface MessageViewProps {
   onForward?: () => void;
 }
 
+/**
+ * Renders a single attachment with download action.
+ * @param attachment - Attachment metadata to display.
+ * @returns The attachment item element.
+ */
 function AttachmentItem({ attachment }: { attachment: Attachment }) {
   const isImage = attachment.contentType.startsWith("image/");
   
@@ -108,6 +123,13 @@ function AttachmentItem({ attachment }: { attachment: Attachment }) {
   );
 }
 
+/**
+ * Renders a single message in a thread with expand/collapse.
+ * @param message - The message data.
+ * @param isExpanded - Whether the message body is visible.
+ * @param onToggle - Callback to toggle expansion.
+ * @returns The thread message item element.
+ */
 function ThreadMessageItem({
   message,
   isExpanded,
@@ -203,6 +225,17 @@ function ThreadMessageItem({
   );
 }
 
+/**
+ * Full message/thread view with header actions and reply.
+ * @param message - Primary message to display.
+ * @param threadMessages - Optional array of thread messages.
+ * @param onStar - Star action callback.
+ * @param onArchive - Archive action callback.
+ * @param onDelete - Delete action callback.
+ * @param onReply - Reply action callback.
+ * @param onForward - Forward action callback.
+ * @returns The message view element.
+ */
 export function MessageView({
   message,
   threadMessages = [],

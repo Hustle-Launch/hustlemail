@@ -1,3 +1,8 @@
+/**
+ * Sent folder page displaying sent messages.
+ * @module app/(private)/mail/sent/page
+ */
+
 "use client";
 
 import { Send } from "lucide-react";

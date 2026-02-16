@@ -1,3 +1,9 @@
+/**
+ * Dashboard layout with sidebar navigation.
+ * Wraps all dashboard routes with header and nav.
+ * @module app/(private)/dashboard/layout
+ */
+
 "use client";
 
 import Link from "next/link";
@@ -13,6 +19,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
+/** Dashboard navigation items with icons. */
 const navigation = [
   { name: "Domains", href: "/dashboard", icon: Globe },
   { name: "Mailboxes", href: "/dashboard/mailboxes", icon: Mail },
@@ -22,6 +29,11 @@ const navigation = [
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ];
 
+/**
+ * Dashboard layout component with header and sidebar nav.
+ * @param children - Dashboard page content.
+ * @returns The dashboard layout shell.
+ */
 export default function DashboardLayout({
   children,
 }: {

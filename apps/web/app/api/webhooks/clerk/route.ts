@@ -1,9 +1,22 @@
+/**
+ * Clerk webhook handler for user sync.
+ * Receives user.created/updated/deleted events from Clerk.
+ * @module app/api/webhooks/clerk/route
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { Webhook } from "svix";
 import { WebhookEvent } from "@clerk/nextjs/server";
 
+/** Clerk webhook signing secret from environment. */
 const WEBHOOK_SECRET = process.env.CLERK_WEBHOOK_SECRET;
 
+/**
+ * POST handler for Clerk webhook events.
+ * Verifies signature and syncs user data to Convex.
+ * @param request - The incoming webhook request.
+ * @returns JSON response acknowledging the event.
+ */
 export async function POST(request: NextRequest) {
   if (!WEBHOOK_SECRET) {
     console.error("CLERK_WEBHOOK_SECRET not set");

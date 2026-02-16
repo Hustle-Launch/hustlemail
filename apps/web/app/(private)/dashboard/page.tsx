@@ -1,3 +1,9 @@
+/**
+ * Dashboard page displaying domain management.
+ * Shows domain cards with DNS status and statistics.
+ * @module app/(private)/dashboard/page
+ */
+
 "use client";
 
 import { useState } from "react";
@@ -22,7 +28,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Mock data - replace with Convex query
+/** Mock domain data for demo - replace with Convex query in production. */
 const mockDomains = [
   {
     id: "1",
@@ -54,6 +60,11 @@ const mockDomains = [
   },
 ];
 
+/**
+ * Status badge for domain verification state.
+ * @param status - Domain status (active, pending, error).
+ * @returns Colored badge with icon.
+ */
 function StatusBadge({ status }: { status: string }) {
   if (status === "active") {
     return (
@@ -79,6 +90,11 @@ function StatusBadge({ status }: { status: string }) {
   );
 }
 
+/**
+ * DNS record status indicator dot.
+ * @param configured - Whether the record is configured.
+ * @returns Colored dot element.
+ */
 function DnsStatusDot({ configured }: { configured: boolean }) {
   return (
     <span
@@ -89,6 +105,10 @@ function DnsStatusDot({ configured }: { configured: boolean }) {
   );
 }
 
+/**
+ * Dashboard/Domains page component.
+ * @returns The domains management page.
+ */
 export default function DomainsPage() {
   const [domains] = useState(mockDomains);
 

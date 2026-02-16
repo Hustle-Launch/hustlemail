@@ -1,3 +1,8 @@
+/**
+ * command component from shadcn/ui.
+ * @see https://ui.shadcn.com/docs/components/command
+ */
+
 "use client";
 
 import * as React from "react";

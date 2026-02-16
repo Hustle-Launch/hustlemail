@@ -1,7 +1,15 @@
+/**
+ * Convex queries for reading data.
+ * All queries require authentication and enforce ownership checks.
+ */
+
 import { v } from "convex/values";
 import { query } from "./_generated/server";
 
-// Get all domains for the current user
+/**
+ * Lists all domains owned by the current authenticated user.
+ * @returns Array of domains with mailbox counts and weekly message stats.
+ */
 export const listDomains = query({
   args: {},
   handler: async (ctx) => {
@@ -41,7 +49,11 @@ export const listDomains = query({
   },
 });
 
-// Get a single domain by ID
+/**
+ * Retrieves a single domain by ID.
+ * @param domainId - The domain ID to fetch.
+ * @returns The domain if found and owned by current user, null otherwise.
+ */
 export const getDomain = query({
   args: { domainId: v.id("domains") },
   handler: async (ctx, args) => {
@@ -55,7 +67,11 @@ export const getDomain = query({
   },
 });
 
-// Get mailboxes for a domain
+/**
+ * Lists mailboxes for a domain or all mailboxes the user has access to.
+ * @param domainId - Optional domain ID to filter by.
+ * @returns Array of mailboxes with stats, domain info, and member details.
+ */
 export const listMailboxes = query({
   args: { domainId: v.optional(v.id("domains")) },
   handler: async (ctx, args) => {
@@ -141,7 +157,13 @@ export const listMailboxes = query({
   },
 });
 
-// Get messages for inbox
+/**
+ * Lists messages for a mailbox with folder filtering.
+ * @param mailboxId - The mailbox to fetch messages from.
+ * @param folder - Optional folder filter (inbox, sent, starred, archive, trash, spam).
+ * @param limit - Maximum number of messages to return.
+ * @returns Array of messages sorted by received date descending.
+ */
 export const listMessages = query({
   args: {
     mailboxId: v.id("mailboxes"),
@@ -196,7 +218,11 @@ export const listMessages = query({
   },
 });
 
-// Get a single message
+/**
+ * Retrieves a single message with its thread.
+ * @param messageId - The message ID to fetch.
+ * @returns The message with thread messages if part of a thread.
+ */
 export const getMessage = query({
   args: { messageId: v.id("messages") },
   handler: async (ctx, args) => {
@@ -223,7 +249,11 @@ export const getMessage = query({
   },
 });
 
-// Get unread counts for sidebar
+/**
+ * Gets unread message counts for sidebar display.
+ * @param mailboxId - The mailbox to count unread messages for.
+ * @returns Object with inbox and spam unread counts.
+ */
 export const getUnreadCounts = query({
   args: { mailboxId: v.id("mailboxes") },
   handler: async (ctx, args) => {
@@ -259,7 +289,13 @@ export const getUnreadCounts = query({
   },
 });
 
-// Search messages
+/**
+ * Searches messages by subject using full-text search.
+ * @param mailboxId - The mailbox to search within.
+ * @param query - The search query string.
+ * @param limit - Maximum number of results.
+ * @returns Array of matching messages.
+ */
 export const searchMessages = query({
   args: {
     mailboxId: v.id("mailboxes"),
@@ -284,7 +320,11 @@ export const searchMessages = query({
   },
 });
 
-// Get analytics data
+/**
+ * Gets analytics data for a domain.
+ * @param domainId - The domain to get analytics for.
+ * @returns Weekly stats including totals, daily breakdown, and top senders.
+ */
 export const getAnalytics = query({
   args: { domainId: v.id("domains") },
   handler: async (ctx, args) => {
@@ -346,7 +386,11 @@ export const getAnalytics = query({
   },
 });
 
-// Get users for a domain
+/**
+ * Lists all users with access to a domain's mailboxes.
+ * @param domainId - The domain to list users for.
+ * @returns Array of users with their roles and mailbox assignments.
+ */
 export const listUsers = query({
   args: { domainId: v.id("domains") },
   handler: async (ctx, args) => {

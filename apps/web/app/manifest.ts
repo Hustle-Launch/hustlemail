@@ -1,5 +1,14 @@
+/**
+ * PWA Web App Manifest configuration.
+ * @module app/manifest
+ */
+
 import type { MetadataRoute } from "next";
 
+/**
+ * Generates the web app manifest for PWA support.
+ * @returns Manifest object with app name, icons, and display settings.
+ */
 export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "CodeMail",

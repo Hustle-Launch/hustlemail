@@ -1,6 +1,5 @@
 /**
- * CodeMail SMTP Ingress Server
- * 
+ * CodeMail SMTP Ingress Server.
  * Receives inbound email via SMTP protocol:
  * 1. Validates recipient mailbox exists in Convex
  * 2. Parses email content with mailparser
@@ -26,9 +25,13 @@ import {
   type MessageInput,
 } from './convex.js';
 
+/** Session data stored during SMTP transaction. */
 interface SessionData {
+  /** Domain ID for the first recipient. */
   domainId?: string;
+  /** Mailbox ID for the first recipient. */
   mailboxId?: string;
+  /** Domain configuration. */
   domain?: {
     config: {
       spamThreshold: number;
@@ -36,6 +39,7 @@ interface SessionData {
       maxAttachmentSize: number;
     };
   };
+  /** Validated recipients for this session. */
   recipients: Array<{
     address: string;
     domainId: string;
@@ -50,11 +54,16 @@ declare module 'smtp-server' {
   }
 }
 
+/** Server configuration. */
 let config: Config;
+/** Convex client instance. */
 let convex: ConvexClient;
 
 /**
- * Handle RCPT TO command - validate recipient exists
+ * Handles RCPT TO command - validates that recipient mailbox exists.
+ * @param address - The recipient address from SMTP.
+ * @param session - The SMTP session.
+ * @param callback - Callback to signal success/failure.
  */
 async function onRcptTo(
   address: SMTPServerAddress,
@@ -105,7 +114,12 @@ async function onRcptTo(
 }
 
 /**
- * Process attachments - store small ones inline, offload large ones
+ * Processes attachments - stores small ones inline, handles large ones per strategy.
+ * @param attachments - Array of attachments from parsed email.
+ * @param domainId - Domain ID for storage context.
+ * @param maxInlineSize - Maximum size for inline storage.
+ * @param strategy - Strategy for large files (store, bounce, byo).
+ * @returns Array of processed attachment metadata.
  */
 async function processAttachments(
   attachments: Attachment[],
@@ -119,8 +133,7 @@ async function processAttachments(
     const size = attachment.size || attachment.content?.length || 0;
     
     if (size <= maxInlineSize) {
-      // Small attachment - we don't store content inline in Convex,
-      // but we'll upload it to storage
+      // Small attachment - upload to storage
       try {
         const storageId = await convex.uploadAttachment(attachment, domainId);
         processed.push({
@@ -160,8 +173,7 @@ async function processAttachments(
           break;
         
         case 'byo':
-          // Customer handles their own storage
-          // Just record metadata
+          // Customer handles their own storage - just record metadata
           processed.push({
             filename: attachment.filename || 'attachment',
             contentType: attachment.contentType || 'application/octet-stream',
@@ -177,7 +189,10 @@ async function processAttachments(
 }
 
 /**
- * Handle DATA command - receive and process email
+ * Handles DATA command - receives and processes the email content.
+ * @param stream - The email data stream.
+ * @param session - The SMTP session.
+ * @param callback - Callback to signal success/failure.
  */
 async function onData(
   stream: Readable,
@@ -300,7 +315,8 @@ async function onData(
 }
 
 /**
- * Create and start the SMTP server
+ * Creates and configures the SMTP server.
+ * @returns The configured SMTP server instance.
  */
 function createServer(): SMTPServer {
   const serverOptions: SMTPServerOptions = {
@@ -359,7 +375,7 @@ function createServer(): SMTPServer {
 }
 
 /**
- * Main entry point
+ * Main entry point - starts the SMTP server.
  */
 async function main(): Promise<void> {
   console.log('[SMTP] Starting main()...');

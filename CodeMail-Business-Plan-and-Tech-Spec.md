@@ -130,23 +130,23 @@ Most of it is just glue between protocols and Convex.
 ### The Simplified Config That Makes It Work
 
 ```typescript
-// mail.config.ts
-export const domain = "pear.com";
+export const mail = {
+  domain: "t3.chat",
+  boxes: ["support", "theo", "mark", "phase", "sjobs", "sama", "dario", "em", "noreply", "catch-all", "sales", "susan", "sarah", "laura"],
+  routes: {
+    support: ["susan", "sarah", "laura"],
+    catch_all: ["sjobs", "dario", "sama", "em", "theo"],
+    noreply: ["bounce"],
+    sales: ["steve", "elizabeth"],
+  },
+  auth: {
+    provider: "convex", // or "clerk", "convex", "auth0"
+  },
+}
 
-export const mailboxes = [
-  "support", "sjobs", "sama", "dario", "em", "noreply", "catch-all", "sales"
-];
+// mark@t3.chat
 
-export const routes = {
-  support: ["susan", "sarah", "laura"],
-  catch_all: ["sjobs", "dario", "sama", "em"],
-  noreply: ["bounce"],
-  sales: ["steve", "elizabeth"],
-};
-
-export const auth = {
-  provider: "workos", // or "clerk", "convex", "auth0"
-};
+// mail.t3.chat -> t3.chat mail web client
 ```
 
 No passwords in config. No plaintext secrets. Auth is orthogonal — Convex auth handles identity, `mail.config.ts` just maps mailbox names to users. Ship day 1 with hardcoded mock users, swap in real SSO when you close your seed round.
@@ -164,12 +164,12 @@ export const mockUsers = [
 ### Day 1 Founder Workflow
 
 ```bash
-npx create-next-app myapp
+npx create-next-app t3-chat-web
 cd myapp
-npx mail setup mycompany.com
-# mail.config.ts appears, DNS records shown, Convex provisioned
+npx codemail create t3.chat
+# mail.config.ts appears, DNS sent to dnsimple config || shown.
 git push
-# founder1@mycompany.com works. Web mail at mail.mycompany.com.
+# theo@t3.chat works. Web mail at mail.t3.chat.
 # Cost: $0 (Convex free tier)
 ```
 

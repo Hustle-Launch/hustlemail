@@ -1,8 +1,17 @@
+/**
+ * Domain management queries and mutations.
+ * Handles domain registration, verification, DNS configuration, and deletion.
+ */
+
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 import { generateDKIMKeys } from "./lib/dkim";
 
-// Get all domains for a user
+/**
+ * Lists all domains owned by a specific user.
+ * @param ownerId - The owner's user ID.
+ * @returns Array of domains.
+ */
 export const list = query({
   args: { ownerId: v.string() },
   handler: async (ctx, args) => {
@@ -13,7 +22,11 @@ export const list = query({
   },
 });
 
-// Get domain by name
+/**
+ * Retrieves a domain by its name.
+ * @param name - The domain name to look up.
+ * @returns The domain or null if not found.
+ */
 export const getByName = query({
   args: { name: v.string() },
   handler: async (ctx, args) => {
@@ -24,7 +37,11 @@ export const getByName = query({
   },
 });
 
-// Get domain by ID
+/**
+ * Retrieves a domain by its ID.
+ * @param id - The domain ID.
+ * @returns The domain or null if not found.
+ */
 export const get = query({
   args: { id: v.id("domains") },
   handler: async (ctx, args) => {
@@ -32,7 +49,12 @@ export const get = query({
   },
 });
 
-// Create a new domain
+/**
+ * Creates a new domain with generated DKIM keys.
+ * @param name - The domain name to register.
+ * @param ownerId - The owner's user ID.
+ * @returns The ID of the newly created domain.
+ */
 export const create = mutation({
   args: {
     name: v.string(),
@@ -74,7 +96,11 @@ export const create = mutation({
   },
 });
 
-// Update domain config
+/**
+ * Updates domain configuration settings.
+ * @param id - The domain ID to update.
+ * @param config - Partial config object with values to update.
+ */
 export const updateConfig = mutation({
   args: {
     id: v.id("domains"),
@@ -100,7 +126,10 @@ export const updateConfig = mutation({
   },
 });
 
-// Verify domain (called after DNS records are set)
+/**
+ * Verifies domain DNS configuration and activates the domain.
+ * @param id - The domain ID to verify.
+ */
 export const verify = mutation({
   args: { id: v.id("domains") },
   handler: async (ctx, args) => {
@@ -116,7 +145,11 @@ export const verify = mutation({
   },
 });
 
-// Get DNS records needed for domain
+/**
+ * Gets the required DNS records for domain setup.
+ * @param id - The domain ID.
+ * @returns Object containing MX, SPF, DKIM, DMARC, and CNAME records.
+ */
 export const getDnsRecords = query({
   args: { id: v.id("domains") },
   handler: async (ctx, args) => {
@@ -159,7 +192,10 @@ export const getDnsRecords = query({
   },
 });
 
-// Delete domain
+/**
+ * Deletes a domain and all associated mailboxes, messages, and logs.
+ * @param id - The domain ID to delete.
+ */
 export const remove = mutation({
   args: { id: v.id("domains") },
   handler: async (ctx, args) => {

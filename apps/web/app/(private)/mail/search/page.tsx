@@ -1,3 +1,8 @@
+/**
+ * Search folder page displaying search messages.
+ * @module app/(private)/mail/search/page
+ */
+
 "use client";
 
 import { Suspense, useState, useCallback } from "react";

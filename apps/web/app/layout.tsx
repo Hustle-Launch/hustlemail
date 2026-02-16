@@ -1,18 +1,27 @@
+/**
+ * Root layout for the CodeMail application.
+ * Sets up fonts, metadata, and wraps pages in providers.
+ * @module app/layout
+ */
+
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
 import { Providers } from "@/components/providers";
 import "./globals.css";
 
+/** Inter font for UI text. */
 const inter = Inter({
   subsets: ["latin"],
   variable: "--font-sans",
 });
 
+/** JetBrains Mono font for code/monospace text. */
 const jetbrainsMono = JetBrains_Mono({
   subsets: ["latin"],
   variable: "--font-mono",
 });
 
+/** Site-wide metadata for SEO and social sharing. */
 export const metadata: Metadata = {
   metadataBase: new URL("https://codemail.vercel.app"),
   title: {
@@ -46,6 +55,11 @@ export const metadata: Metadata = {
   },
 };
 
+/**
+ * Root layout component.
+ * @param children - Page content to render.
+ * @returns The HTML document structure.
+ */
 export default function RootLayout({
   children,
 }: {

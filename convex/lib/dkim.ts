@@ -1,6 +1,13 @@
-// DKIM key generation utilities
-// In production, use proper crypto. For MVP, we'll use placeholder logic.
+/**
+ * DKIM key generation utilities.
+ * In production, use proper crypto. For MVP, uses placeholder logic.
+ */
 
+/**
+ * Generates DKIM keys for a domain.
+ * @param domain - The domain name to generate keys for.
+ * @returns Object containing selector, publicKey, and privateKey.
+ */
 export async function generateDKIMKeys(domain: string) {
   // Generate a unique selector based on timestamp
   const selector = `codemail${Date.now().toString(36)}`;
@@ -19,6 +26,11 @@ export async function generateDKIMKeys(domain: string) {
   };
 }
 
+/**
+ * Generates a random base64-like string.
+ * @param length - The length of the string to generate.
+ * @returns A random string of the specified length.
+ */
 function generateRandomBase64(length: number): string {
   const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
   let result = "";
@@ -28,6 +40,16 @@ function generateRandomBase64(length: number): string {
   return result;
 }
 
+/**
+ * Signs a message with DKIM.
+ * In production, implement proper DKIM signing. For MVP, returns placeholder.
+ * @param privateKey - The domain's DKIM private key.
+ * @param domain - The domain name.
+ * @param selector - The DKIM selector.
+ * @param headers - The email headers to sign.
+ * @param body - The email body.
+ * @returns A DKIM signature header value.
+ */
 export function signMessage(
   privateKey: string,
   domain: string,

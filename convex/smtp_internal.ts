@@ -1,6 +1,5 @@
 /**
- * Internal functions for SMTP HTTP actions
- * 
+ * Internal functions for SMTP HTTP actions.
  * These are internal queries/mutations called by the HTTP actions.
  */
 
@@ -8,7 +7,9 @@ import { v } from "convex/values";
 import { internalMutation, internalQuery } from "./_generated/server";
 
 /**
- * Get domain by name
+ * Gets a domain by name (internal query for SMTP ingress).
+ * @param name - The domain name to look up.
+ * @returns The domain or null if not found.
  */
 export const getDomainByName = internalQuery({
   args: { name: v.string() },
@@ -23,7 +24,10 @@ export const getDomainByName = internalQuery({
 });
 
 /**
- * Get mailbox by domain and name
+ * Gets a mailbox by domain and name (internal query for SMTP ingress).
+ * @param domainId - The domain ID as a string.
+ * @param name - The mailbox name (local part of email).
+ * @returns The mailbox or null if not found.
  */
 export const getMailboxByName = internalQuery({
   args: {
@@ -47,7 +51,19 @@ export const getMailboxByName = internalQuery({
 });
 
 /**
- * Store an inbound message
+ * Stores an inbound message (internal mutation for SMTP ingress).
+ * @param domainId - The domain ID as a string.
+ * @param mailboxId - The mailbox ID as a string.
+ * @param messageId - The RFC 5322 Message-ID.
+ * @param from - Sender address object.
+ * @param to - Array of recipient address objects.
+ * @param subject - Email subject.
+ * @param bodyText - Plain text body.
+ * @param bodyHtml - HTML body.
+ * @param attachments - Array of attachment metadata.
+ * @param date - Email date timestamp.
+ * @param isSpam - Whether the message was flagged as spam.
+ * @returns The ID of the stored message.
  */
 export const storeMessage = internalMutation({
   args: {
@@ -170,7 +186,13 @@ export const storeMessage = internalMutation({
 });
 
 /**
- * Log spam evaluation
+ * Logs a spam evaluation result (internal mutation for analytics).
+ * @param messageId - The message ID as a string.
+ * @param isSpam - Whether the message was classified as spam.
+ * @param score - The spam score (0-100).
+ * @param category - The spam category (ham, spam, phishing, scam).
+ * @param reason - The reason for the classification.
+ * @param model - The AI model used for evaluation.
  */
 export const logSpamEvaluation = internalMutation({
   args: {

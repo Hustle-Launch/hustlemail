@@ -1,3 +1,8 @@
+/**
+ * New domain creation page.
+ * @module app/(private)/dashboard/domains/new/page
+ */
+
 "use client";
 
 import { useState } from "react";

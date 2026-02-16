@@ -1,8 +1,20 @@
+/**
+ * Global error boundary component.
+ * Catches unhandled errors and displays a recovery UI.
+ * @module app/error
+ */
+
 "use client";
 
 import { useEffect } from "react";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
+/**
+ * Error boundary component for handling runtime errors.
+ * @param error - The error that was thrown.
+ * @param reset - Function to reset and retry.
+ * @returns Error UI with retry button.
+ */
 export default function Error({
   error,
   reset,

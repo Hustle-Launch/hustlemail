@@ -1,3 +1,9 @@
+/**
+ * Command menu (⌘+K palette) for quick navigation and actions.
+ * Provides keyboard-driven access to common mail operations.
+ * @module components/mail/command-menu
+ */
+
 "use client";
 
 import { useRouter } from "next/navigation";
@@ -27,6 +33,11 @@ import {
 } from "@/components/ui/command";
 import { useCommandMenu } from "@/hooks/use-command-menu";
 
+/**
+ * Command palette dialog with search and quick actions.
+ * Opens with ⌘+K and provides navigation, theme toggle, and sign out.
+ * @returns The command menu dialog element.
+ */
 export function CommandMenu() {
   const router = useRouter();
   const { open, setOpen } = useCommandMenu();

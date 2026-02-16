@@ -1,3 +1,8 @@
+/**
+ * Theme provider configuration using next-themes.
+ * @module components/providers/theme
+ */
+
 "use client";
 
 import { ThemeProvider as NextThemesProvider } from "next-themes";

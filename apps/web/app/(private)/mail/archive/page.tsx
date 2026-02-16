@@ -1,3 +1,8 @@
+/**
+ * Archive folder page displaying archive messages.
+ * @module app/(private)/mail/archive/page
+ */
+
 "use client";
 
 import { Archive } from "lucide-react";

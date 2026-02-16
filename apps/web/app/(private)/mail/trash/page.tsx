@@ -1,3 +1,8 @@
+/**
+ * Trash folder page displaying trash messages.
+ * @module app/(private)/mail/trash/page
+ */
+
 "use client";
 
 import { Trash2 } from "lucide-react";

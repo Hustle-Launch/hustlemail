@@ -1,6 +1,5 @@
 /**
- * Convex API Client
- * 
+ * Convex API Client.
  * Communicates with Convex backend via HTTP actions.
  */
 
@@ -9,19 +8,33 @@ import { logger } from './logger.js';
 import type { SpamResult } from './spam.js';
 import type { AddressObject, Attachment } from 'mailparser';
 
+/** Input data for storing a message. */
 export interface MessageInput {
+  /** Domain ID. */
   domainId: string;
+  /** Mailbox ID. */
   mailboxId: string;
+  /** RFC 5322 Message-ID. */
   messageId: string;
+  /** In-Reply-To header. */
   inReplyTo?: string;
+  /** References header values. */
   references?: string[];
+  /** Sender address. */
   from: { name?: string; address: string };
+  /** Recipient addresses. */
   to: Array<{ name?: string; address: string }>;
+  /** CC addresses. */
   cc?: Array<{ name?: string; address: string }>;
+  /** Reply-To address. */
   replyTo?: { name?: string; address: string };
+  /** Email subject. */
   subject: string;
+  /** Plain text body. */
   bodyText?: string;
+  /** HTML body. */
   bodyHtml?: string;
+  /** Attachment metadata. */
   attachments: Array<{
     filename: string;
     contentType: string;
@@ -29,24 +42,39 @@ export interface MessageInput {
     storageId?: string;
     externalUrl?: string;
   }>;
+  /** Email date timestamp. */
   date: number;
+  /** Whether classified as spam. */
   isSpam: boolean;
+  /** Spam score. */
   spamScore?: number;
+  /** Spam classification reason. */
   spamReason?: string;
 }
 
+/** Mailbox information from Convex. */
 export interface MailboxInfo {
+  /** Mailbox ID. */
   _id: string;
+  /** Domain ID. */
   domainId: string;
+  /** Mailbox name (local part). */
   name: string;
+  /** Mailbox type. */
   type: 'personal' | 'shared' | 'alias';
+  /** Forwarding addresses for aliases. */
   forwardTo?: string[];
 }
 
+/** Domain information from Convex. */
 export interface DomainInfo {
+  /** Domain ID. */
   _id: string;
+  /** Domain name. */
   name: string;
+  /** Domain status. */
   status: string;
+  /** Domain configuration. */
   config: {
     spamThreshold: number;
     largeFileStrategy: 'store' | 'bounce' | 'byo';
@@ -55,11 +83,19 @@ export interface DomainInfo {
   };
 }
 
+/** Client for interacting with Convex backend. */
 export class ConvexClient {
+  /** Base URL for HTTP actions. */
   private baseUrl: string;
-  private deployKey: string;
+  /** Shared secret for SMTP <-> Convex auth. */
+  private sharedSecret: string;
+  /** Whether running in demo mode. */
   private demoMode: boolean;
 
+  /**
+   * Creates a new Convex client.
+   * @param config - Server configuration.
+   */
   constructor(config: Config) {
     // Check if we're in demo mode (no real Convex configured)
     this.demoMode = !config.convexUrl || config.convexUrl === 'demo';
@@ -67,15 +103,21 @@ export class ConvexClient {
     if (this.demoMode) {
       console.log('ConvexClient running in DEMO MODE - no backend storage');
       this.baseUrl = '';
-      this.deployKey = '';
+      this.sharedSecret = '';
     } else {
       // Convex URL format: https://xxx.convex.cloud
       // HTTP action format: https://xxx.convex.site
       this.baseUrl = config.convexUrl.replace('.convex.cloud', '.convex.site');
-      this.deployKey = config.convexDeployKey;
+      this.sharedSecret = config.smtpSharedSecret;
     }
   }
 
+  /**
+   * Makes an HTTP request to a Convex HTTP action.
+   * @param path - The action path.
+   * @param body - The request body.
+   * @returns The response data.
+   */
   private async request<T>(
     path: string,
     body: Record<string, unknown>
@@ -88,7 +130,7 @@ export class ConvexClient {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${this.deployKey}`,
+        'Authorization': `Bearer ${this.sharedSecret}`,
       },
       body: JSON.stringify(body),
     });
@@ -103,7 +145,9 @@ export class ConvexClient {
   }
 
   /**
-   * Look up domain by name
+   * Looks up a domain by name.
+   * @param domainName - The domain name to look up.
+   * @returns The domain info or null if not found.
    */
   async getDomain(domainName: string): Promise<DomainInfo | null> {
     try {
@@ -118,7 +162,10 @@ export class ConvexClient {
   }
 
   /**
-   * Look up mailbox by domain and name
+   * Looks up a mailbox by domain and name.
+   * @param domainId - The domain ID.
+   * @param mailboxName - The mailbox name (local part).
+   * @returns The mailbox info or null if not found.
    */
   async getMailbox(domainId: string, mailboxName: string): Promise<MailboxInfo | null> {
     try {
@@ -134,7 +181,9 @@ export class ConvexClient {
   }
 
   /**
-   * Validate that a recipient mailbox exists
+   * Validates that a recipient mailbox exists.
+   * @param email - The full email address to validate.
+   * @returns Validation result with domain and mailbox info.
    */
   async validateRecipient(email: string): Promise<{
     valid: boolean;
@@ -202,7 +251,10 @@ export class ConvexClient {
   }
 
   /**
-   * Upload attachment to Convex storage
+   * Uploads an attachment to Convex storage.
+   * @param attachment - The attachment to upload.
+   * @param domainId - The domain ID for context.
+   * @returns The storage ID of the uploaded file.
    */
   async uploadAttachment(
     attachment: Attachment,
@@ -239,7 +291,9 @@ export class ConvexClient {
   }
 
   /**
-   * Store a message in Convex
+   * Stores a message in Convex.
+   * @param message - The message data to store.
+   * @returns The stored message ID.
    */
   async storeMessage(message: MessageInput): Promise<string> {
     // Demo mode - just log the message
@@ -262,7 +316,9 @@ export class ConvexClient {
   }
 
   /**
-   * Log spam evaluation result
+   * Logs a spam evaluation result.
+   * @param messageId - The message ID.
+   * @param result - The spam evaluation result.
    */
   async logSpamEvaluation(
     messageId: string,
@@ -286,7 +342,9 @@ export class ConvexClient {
 }
 
 /**
- * Parse mailparser address format to our format
+ * Parses mailparser address format to our format.
+ * @param addr - The address object(s) from mailparser.
+ * @returns Array of normalized address objects.
  */
 export function parseAddress(
   addr: AddressObject | AddressObject[] | undefined
@@ -304,7 +362,9 @@ export function parseAddress(
 }
 
 /**
- * Parse single address
+ * Parses a single address from mailparser format.
+ * @param addr - The address object(s) from mailparser.
+ * @returns The first address or undefined.
  */
 export function parseSingleAddress(
   addr: AddressObject | AddressObject[] | undefined

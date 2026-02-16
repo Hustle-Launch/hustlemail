@@ -1,7 +1,16 @@
+/**
+ * User management queries and mutations.
+ * Handles user CRUD operations and Clerk synchronization.
+ */
+
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
 
-// Get user by Clerk ID
+/**
+ * Retrieves a user by their Clerk ID.
+ * @param clerkId - The Clerk user ID.
+ * @returns The user or null if not found.
+ */
 export const getByClerkId = query({
   args: { clerkId: v.string() },
   handler: async (ctx, args) => {
@@ -12,7 +21,11 @@ export const getByClerkId = query({
   },
 });
 
-// Get user by email
+/**
+ * Retrieves a user by their email address.
+ * @param email - The user's email address.
+ * @returns The user or null if not found.
+ */
 export const getByEmail = query({
   args: { email: v.string() },
   handler: async (ctx, args) => {
@@ -23,7 +36,11 @@ export const getByEmail = query({
   },
 });
 
-// Get user by ID
+/**
+ * Retrieves a user by their ID.
+ * @param id - The user ID.
+ * @returns The user or null if not found.
+ */
 export const get = query({
   args: { id: v.id("users") },
   handler: async (ctx, args) => {
@@ -31,7 +48,14 @@ export const get = query({
   },
 });
 
-// Create or update user (upsert on Clerk sign-in)
+/**
+ * Creates or updates a user (upsert on Clerk sign-in).
+ * @param clerkId - The Clerk user ID.
+ * @param email - User's email address.
+ * @param name - User's display name.
+ * @param avatarUrl - Optional avatar URL.
+ * @returns The user ID.
+ */
 export const upsert = mutation({
   args: {
     clerkId: v.string(),
@@ -66,7 +90,12 @@ export const upsert = mutation({
   },
 });
 
-// Update user profile
+/**
+ * Updates a user's profile information.
+ * @param id - The user ID to update.
+ * @param name - Optional new name.
+ * @param avatarUrl - Optional new avatar URL.
+ */
 export const update = mutation({
   args: {
     id: v.id("users"),
@@ -79,7 +108,10 @@ export const update = mutation({
   },
 });
 
-// Delete user
+/**
+ * Deletes a user and revokes all mailbox access.
+ * @param id - The user ID to delete.
+ */
 export const remove = mutation({
   args: { id: v.id("users") },
   handler: async (ctx, args) => {

@@ -1,8 +1,15 @@
+/**
+ * Inbound email webhook route.
+ * Receives emails from the SMTP ingress server and stores them in Convex.
+ * @module app/api/inbound/route
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 
-// Webhook secret for verifying requests from SMTP server
+/** Webhook secret for verifying requests from SMTP server. */
 const WEBHOOK_SECRET = process.env.CODEMAIL_WEBHOOK_SECRET;
 
+/** Inbound email payload from SMTP server. */
 interface InboundEmail {
   messageId: string;
   from: { name?: string; address: string };
@@ -26,11 +33,24 @@ interface InboundEmail {
   };
 }
 
+/**
+ * POST handler for receiving inbound emails from SMTP server.
+ * @param request - The incoming webhook request.
+ * @returns JSON response with processing result.
+ */
 export async function POST(request: NextRequest) {
   try {
-    // Verify webhook secret
+    // Verify webhook secret - FAIL SECURE if not configured
+    if (!WEBHOOK_SECRET) {
+      console.error("CODEMAIL_WEBHOOK_SECRET not configured - rejecting inbound webhook");
+      return NextResponse.json(
+        { error: "Webhook not configured" },
+        { status: 503 }
+      );
+    }
+    
     const authHeader = request.headers.get("authorization");
-    if (WEBHOOK_SECRET && authHeader !== `Bearer ${WEBHOOK_SECRET}`) {
+    if (authHeader !== `Bearer ${WEBHOOK_SECRET}`) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
@@ -72,7 +92,10 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Health check
+/**
+ * GET handler for health check.
+ * @returns Service status JSON.
+ */
 export async function GET() {
   return NextResponse.json({ status: "ok", service: "codemail-inbound" });
 }

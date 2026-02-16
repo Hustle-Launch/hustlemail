@@ -1,8 +1,18 @@
+/**
+ * Clerk authentication proxy (Next.js 16+ middleware replacement).
+ * Protects routes under /(private)/ route group.
+ * @module proxy
+ */
+
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 
-// ONLY protect the (private) route group - everything else is public by default
+/** Route matcher for protected routes. */
 const isPrivateRoute = createRouteMatcher(["/(private)(.*)"]);
 
+/**
+ * Clerk middleware that protects private routes.
+ * Public routes (homepage, marketing, auth) are not protected.
+ */
 export default clerkMiddleware(async (auth, request) => {
   if (isPrivateRoute(request)) {
     await auth.protect();

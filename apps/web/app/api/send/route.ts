@@ -1,8 +1,20 @@
+/**
+ * Email sending API route.
+ * Proxies email sending through Resend.
+ * @module app/api/send/route
+ */
+
 import { NextRequest, NextResponse } from "next/server";
 import { Resend } from "resend";
 
-// Lazy initialization to avoid build errors
+/** Lazily initialized Resend client. */
 let _resend: Resend | null = null;
+
+/**
+ * Gets or creates the Resend client instance.
+ * @returns Configured Resend client.
+ * @throws Error if RESEND_API_KEY is not configured.
+ */
 function getResend(): Resend {
   if (!_resend) {
     if (!process.env.RESEND_API_KEY) {
@@ -13,6 +25,11 @@ function getResend(): Resend {
   return _resend;
 }
 
+/**
+ * POST handler for sending emails via Resend.
+ * @param request - The incoming request with email data.
+ * @returns JSON response with send result or error.
+ */
 export async function POST(request: NextRequest) {
   try {
     // Check for API key first

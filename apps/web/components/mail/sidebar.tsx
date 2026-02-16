@@ -1,3 +1,9 @@
+/**
+ * Mail sidebar component with navigation, labels, and user menu.
+ * Provides primary navigation for the mail interface.
+ * @module components/mail/sidebar
+ */
+
 "use client";
 
 import Link from "next/link";
@@ -21,7 +27,7 @@ import {
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
-// Mock user for when Clerk isn't available
+/** Mock user data for demo mode when Clerk isn't configured. */
 const mockUser = {
   fullName: "Demo User",
   firstName: "Demo",
@@ -46,6 +52,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
+/** Primary navigation items with icons and optional badge counts. */
 const navigation = [
   { name: "Inbox", href: "/mail/inbox", icon: Inbox, badge: 12 },
   { name: "Sent", href: "/mail/sent", icon: Send },
@@ -54,6 +61,7 @@ const navigation = [
   { name: "Trash", href: "/mail/trash", icon: Trash2 },
 ];
 
+/** User-defined labels with associated colors. */
 const labels = [
   { name: "Work", color: "bg-blue-500" },
   { name: "Personal", color: "bg-green-500" },
@@ -61,6 +69,11 @@ const labels = [
   { name: "Updates", color: "bg-yellow-500" },
 ];
 
+/**
+ * Sidebar component for the mail interface.
+ * Includes branding, compose/search actions, navigation, labels, and user profile.
+ * @returns The sidebar element.
+ */
 export function Sidebar() {
   const pathname = usePathname();
   const { theme, setTheme } = useTheme();

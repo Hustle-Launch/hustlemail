@@ -1,3 +1,8 @@
+/**
+ * Analytics page showing email statistics.
+ * @module app/(private)/dashboard/analytics/page
+ */
+
 "use client";
 
 import {

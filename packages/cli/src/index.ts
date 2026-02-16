@@ -1,4 +1,9 @@
 #!/usr/bin/env node
+/**
+ * @codemail/cli - Command line interface for CodeMail.
+ * Provides commands for setting up, deploying, and managing email infrastructure.
+ */
+
 import { Command } from "commander";
 import * as p from "@clack/prompts";
 import chalk from "chalk";
@@ -6,6 +11,7 @@ import { writeFileSync, existsSync } from "fs";
 import { join } from "path";
 import { generateExampleConfig, parseMailConfig } from "@codemail/config";
 
+/** CLI program instance. */
 const program = new Command();
 
 program
@@ -13,7 +19,9 @@ program
   .description("Email infrastructure that lives in your GitHub repo")
   .version("0.1.0");
 
-// Setup command - initialize a new domain
+/**
+ * Setup command - initializes a new domain with mail.config.ts.
+ */
 program
   .command("setup [domain]")
   .description("Set up email for a domain")
@@ -94,7 +102,9 @@ ${chalk.cyan("CNAME Record (Web Mail)")}
     );
   });
 
-// Deploy command
+/**
+ * Deploy command - deploys mail configuration to Convex.
+ */
 program
   .command("deploy")
   .description("Deploy mail configuration changes")
@@ -131,7 +141,9 @@ program
     p.outro(`${chalk.green("✓")} Deployment complete! Your email is ready.`);
   });
 
-// Status command
+/**
+ * Status command - shows current domain health and status.
+ */
 program
   .command("status")
   .description("Check domain status and health")
@@ -158,7 +170,9 @@ ${chalk.bold("DNS Records:")}
 `);
   });
 
-// DNS command - show required DNS records
+/**
+ * DNS command - displays required DNS records for setup.
+ */
 program
   .command("dns")
   .description("Show required DNS records")
@@ -203,7 +217,9 @@ ${chalk.dim("Run `codemail verify` after adding these records.")}
 `);
   });
 
-// Logs command
+/**
+ * Logs command - streams real-time email logs.
+ */
 program
   .command("logs")
   .description("Stream real-time logs")
@@ -232,9 +248,12 @@ program
     }
   });
 
-// Users command
+/** Users subcommand group for managing mailbox users. */
 const users = program.command("users").description("Manage mailbox users");
 
+/**
+ * Users list command - shows all users with access.
+ */
 users
   .command("list")
   .description("List all users")
@@ -248,6 +267,9 @@ ${chalk.bold("Users")}
 `);
   });
 
+/**
+ * Users add command - adds a new user to the system.
+ */
 users
   .command("add <email>")
   .description("Add a new user")
@@ -257,6 +279,11 @@ users
     console.log(chalk.green(`✓ Added user: ${name} <${email}>`));
   });
 
+/**
+ * Sleeps for the specified duration.
+ * @param ms - Duration in milliseconds.
+ * @returns Promise that resolves after the delay.
+ */
 function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }

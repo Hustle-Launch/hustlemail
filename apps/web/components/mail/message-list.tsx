@@ -1,3 +1,9 @@
+/**
+ * Message list component for displaying email messages.
+ * Supports keyboard navigation, selection, and inline actions.
+ * @module components/mail/message-list
+ */
+
 "use client";
 
 import { useState, useCallback } from "react";
@@ -29,6 +35,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useMailShortcuts } from "@/hooks/use-keyboard-shortcuts";
 
+/** Message data structure for list display. */
 interface Message {
   _id: string;
   from: { name?: string; address: string };
@@ -41,6 +48,7 @@ interface Message {
   attachments: { filename: string }[];
 }
 
+/** Props for the MessageList component. */
 interface MessageListProps {
   messages: Message[];
   selectedId?: string;
@@ -51,6 +59,7 @@ interface MessageListProps {
   onMarkRead?: (id: string, read: boolean) => void;
 }
 
+/** Tailwind class mappings for label colors. */
 const labelColors: Record<string, string> = {
   work: "bg-blue-500/20 text-blue-400 border-blue-500/30",
   personal: "bg-green-500/20 text-green-400 border-green-500/30",
@@ -58,6 +67,17 @@ const labelColors: Record<string, string> = {
   updates: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
 };
 
+/**
+ * Renders a list of email messages with keyboard shortcuts and hover actions.
+ * @param messages - Array of messages to display.
+ * @param selectedId - Currently selected message ID.
+ * @param onSelect - Callback when a message is selected.
+ * @param onStar - Callback when a message is starred.
+ * @param onArchive - Callback when a message is archived.
+ * @param onDelete - Callback when a message is deleted.
+ * @param onMarkRead - Callback when read status is toggled.
+ * @returns The message list element.
+ */
 export function MessageList({
   messages,
   selectedId,

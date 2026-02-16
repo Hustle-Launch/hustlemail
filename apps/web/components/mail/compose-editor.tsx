@@ -1,3 +1,9 @@
+/**
+ * Email compose editor with rich text editing via TipTap.
+ * Supports reply mode, attachments, and CC/BCC fields.
+ * @module components/mail/compose-editor
+ */
+
 "use client";
 
 import { useState, useCallback } from "react";
@@ -34,6 +40,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+/** Props for the ComposeEditor component. */
 interface ComposeEditorProps {
   initialTo?: string;
   initialSubject?: string;
@@ -54,6 +61,16 @@ interface ComposeEditorProps {
   onDiscard?: () => void;
 }
 
+/**
+ * Rich text email compose editor.
+ * @param initialTo - Pre-filled recipient address.
+ * @param initialSubject - Pre-filled subject line.
+ * @param initialBody - Pre-filled body content.
+ * @param replyTo - Reply context with original message info.
+ * @param onSend - Callback to send the email.
+ * @param onDiscard - Callback when discarding the draft.
+ * @returns The compose editor element.
+ */
 export function ComposeEditor({
   initialTo = "",
   initialSubject = "",

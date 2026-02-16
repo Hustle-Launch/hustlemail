@@ -1,3 +1,8 @@
+/**
+ * Security settings page for domain authentication.
+ * @module app/(private)/dashboard/security/page
+ */
+
 "use client";
 
 import {

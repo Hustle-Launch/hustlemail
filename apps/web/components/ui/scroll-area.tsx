@@ -1,3 +1,8 @@
+/**
+ * scroll area component from shadcn/ui.
+ * @see https://ui.shadcn.com/docs/components/scroll-area
+ */
+
 "use client";
 
 import * as React from "react";

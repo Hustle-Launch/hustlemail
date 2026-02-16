@@ -1,7 +1,16 @@
+/**
+ * Convex mutations for modifying data.
+ * All mutations require authentication and enforce ownership checks.
+ */
+
 import { v } from "convex/values";
 import { mutation } from "./_generated/server";
+import { requireMailboxAccess } from "./lib/auth";
 
-// Helper to generate a random selector string
+/**
+ * Generates a random selector string for DKIM.
+ * @returns A unique selector prefixed with 'codemail'.
+ */
 function generateSelector(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
   let result = 'codemail';
@@ -11,7 +20,11 @@ function generateSelector(): string {
   return result;
 }
 
-// Create a new domain
+/**
+ * Creates a new domain for the authenticated user.
+ * @param name - The domain name to register.
+ * @returns The ID of the newly created domain.
+ */
 export const createDomain = mutation({
   args: {
     name: v.string(),
@@ -55,7 +68,11 @@ export const createDomain = mutation({
   },
 });
 
-// Verify domain DNS
+/**
+ * Verifies domain DNS configuration.
+ * @param domainId - The domain ID to verify.
+ * @returns Success status.
+ */
 export const verifyDomain = mutation({
   args: { domainId: v.id("domains") },
   handler: async (ctx, args) => {
@@ -78,7 +95,15 @@ export const verifyDomain = mutation({
   },
 });
 
-// Create a mailbox
+/**
+ * Creates a new mailbox within a domain.
+ * @param domainId - The domain to create the mailbox in.
+ * @param name - The mailbox name (local part of email).
+ * @param displayName - Optional display name.
+ * @param type - The mailbox type (personal, shared, alias).
+ * @param forwardTo - Optional array of forwarding addresses.
+ * @returns The ID of the newly created mailbox.
+ */
 export const createMailbox = mutation({
   args: {
     domainId: v.id("domains"),
@@ -140,7 +165,11 @@ export const createMailbox = mutation({
   },
 });
 
-// Delete a mailbox
+/**
+ * Deletes a mailbox and all associated access records.
+ * @param mailboxId - The mailbox ID to delete.
+ * @returns Success status.
+ */
 export const deleteMailbox = mutation({
   args: { mailboxId: v.id("mailboxes") },
   handler: async (ctx, args) => {
@@ -172,7 +201,12 @@ export const deleteMailbox = mutation({
   },
 });
 
-// Mark message as read
+/**
+ * Marks a message as read or unread.
+ * @param messageId - The message ID to update.
+ * @param isRead - Whether the message is read.
+ * @returns Success status.
+ */
 export const markAsRead = mutation({
   args: {
     messageId: v.id("messages"),
@@ -187,7 +221,11 @@ export const markAsRead = mutation({
   },
 });
 
-// Star/unstar message
+/**
+ * Toggles the starred status of a message.
+ * @param messageId - The message ID to toggle.
+ * @returns Success status and new starred state.
+ */
 export const toggleStar = mutation({
   args: { messageId: v.id("messages") },
   handler: async (ctx, args) => {
@@ -202,7 +240,11 @@ export const toggleStar = mutation({
   },
 });
 
-// Archive message
+/**
+ * Archives a message.
+ * @param messageId - The message ID to archive.
+ * @returns Success status.
+ */
 export const archiveMessage = mutation({
   args: { messageId: v.id("messages") },
   handler: async (ctx, args) => {
@@ -214,7 +256,11 @@ export const archiveMessage = mutation({
   },
 });
 
-// Move to trash
+/**
+ * Moves a message to trash.
+ * @param messageId - The message ID to trash.
+ * @returns Success status.
+ */
 export const trashMessage = mutation({
   args: { messageId: v.id("messages") },
   handler: async (ctx, args) => {
@@ -226,7 +272,11 @@ export const trashMessage = mutation({
   },
 });
 
-// Permanently delete message
+/**
+ * Permanently deletes a message (must be in trash first).
+ * @param messageId - The message ID to delete.
+ * @returns Success status.
+ */
 export const deleteMessage = mutation({
   args: { messageId: v.id("messages") },
   handler: async (ctx, args) => {
@@ -246,7 +296,12 @@ export const deleteMessage = mutation({
   },
 });
 
-// Mark as spam / not spam
+/**
+ * Marks a message as spam or not spam.
+ * @param messageId - The message ID to update.
+ * @param isSpam - Whether the message is spam.
+ * @returns Success status.
+ */
 export const markAsSpam = mutation({
   args: {
     messageId: v.id("messages"),
@@ -261,7 +316,12 @@ export const markAsSpam = mutation({
   },
 });
 
-// Add/remove label
+/**
+ * Updates the labels on a message.
+ * @param messageId - The message ID to update.
+ * @param labels - Array of label strings.
+ * @returns Success status.
+ */
 export const updateLabels = mutation({
   args: {
     messageId: v.id("messages"),
@@ -276,7 +336,18 @@ export const updateLabels = mutation({
   },
 });
 
-// Queue outbound email
+/**
+ * Queues an outbound email for sending.
+ * @param mailboxId - The mailbox to send from.
+ * @param to - Array of recipient addresses.
+ * @param cc - Optional CC addresses.
+ * @param bcc - Optional BCC addresses.
+ * @param subject - Email subject.
+ * @param bodyText - Plain text body.
+ * @param bodyHtml - HTML body.
+ * @param attachments - Optional attachments.
+ * @returns The queue ID.
+ */
 export const queueOutboundEmail = mutation({
   args: {
     mailboxId: v.id("mailboxes"),
@@ -297,18 +368,11 @@ export const queueOutboundEmail = mutation({
     ),
   },
   handler: async (ctx, args) => {
-    const identity = await ctx.auth.getUserIdentity();
-    if (!identity) throw new Error("Not authenticated");
+    // Verify user has member access to send from this mailbox
+    const { user } = await requireMailboxAccess(ctx, args.mailboxId, "member");
 
     const mailbox = await ctx.db.get(args.mailboxId);
     if (!mailbox) throw new Error("Mailbox not found");
-
-    const user = await ctx.db
-      .query("users")
-      .withIndex("by_clerk_id", (q) => q.eq("clerkId", identity.subject))
-      .first();
-
-    if (!user) throw new Error("User not found");
 
     const queueId = await ctx.db.insert("outboundQueue", {
       domainId: mailbox.domainId,
@@ -329,7 +393,14 @@ export const queueOutboundEmail = mutation({
   },
 });
 
-// Sync user from Clerk (called by webhook or on first access)
+/**
+ * Syncs user data from Clerk (called by webhook or on first access).
+ * @param clerkId - The Clerk user ID.
+ * @param email - User's email address.
+ * @param name - User's display name.
+ * @param avatarUrl - Optional avatar URL.
+ * @returns The user ID.
+ */
 export const syncUser = mutation({
   args: {
     clerkId: v.string(),
@@ -364,7 +435,13 @@ export const syncUser = mutation({
   },
 });
 
-// Invite user to mailbox
+/**
+ * Invites a user to access a mailbox.
+ * @param mailboxId - The mailbox to grant access to.
+ * @param email - The invitee's email address.
+ * @param role - The access role (member or readonly).
+ * @returns Success status.
+ */
 export const inviteUserToMailbox = mutation({
   args: {
     mailboxId: v.id("mailboxes"),

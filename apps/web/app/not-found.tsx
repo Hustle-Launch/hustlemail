@@ -1,6 +1,16 @@
+/**
+ * 404 Not Found page component.
+ * Displayed when a route doesn't exist.
+ * @module app/not-found
+ */
+
 import Link from "next/link";
 import { Mail, ArrowLeft } from "lucide-react";
 
+/**
+ * Not Found page component.
+ * @returns 404 page with navigation back to home.
+ */
 export default function NotFound() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-950 text-white">

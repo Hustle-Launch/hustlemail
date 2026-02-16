@@ -1,3 +1,8 @@
+/**
+ * uadge component from shadcn/ui.
+ * @see https://ui.shadcn.com/docs/components/badge
+ */
+
 import * as React from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";

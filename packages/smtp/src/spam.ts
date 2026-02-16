@@ -1,6 +1,5 @@
 /**
- * Spam Evaluation Module
- * 
+ * Spam Evaluation Module.
  * Two-stage spam detection:
  * 1. Fast path: Blocklist lookup
  * 2. AI evaluation: OpenRouter LLM for contextual analysis
@@ -9,29 +8,42 @@
 import type { Config } from './config.js';
 import { logger } from './logger.js';
 
+/** Result of spam evaluation. */
 export interface SpamResult {
+  /** Whether the email was classified as spam. */
   isSpam: boolean;
-  score: number; // 0-100, higher = more likely spam
+  /** Spam score from 0-100, higher = more likely spam. */
+  score: number;
+  /** Category of the classification. */
   category: 'ham' | 'spam' | 'phishing' | 'scam' | 'unknown';
+  /** Human-readable reason for the classification. */
   reason: string;
+  /** The AI model used for evaluation (if any). */
   model?: string;
 }
 
+/** Email content for spam evaluation. */
 export interface EmailContent {
+  /** Sender email address. */
   from: string;
+  /** Recipient email addresses. */
   to: string[];
+  /** Email subject. */
   subject: string;
+  /** Plain text body. */
   bodyText?: string;
+  /** HTML body. */
   bodyHtml?: string;
 }
 
-// Known spam domains/addresses - would be stored in Convex in production
+/** Known spam email addresses. */
 const BLOCKLIST = new Set([
   'spam@spam.com',
   'noreply@scammer.xyz',
   'prince@nigeria.gov.ng.fake',
 ]);
 
+/** Known spam domains. */
 const BLOCKLIST_DOMAINS = new Set([
   'spam.com',
   'scammer.xyz',
@@ -40,7 +52,9 @@ const BLOCKLIST_DOMAINS = new Set([
 ]);
 
 /**
- * Check if sender is on blocklist
+ * Checks if a sender is on the blocklist.
+ * @param from - The sender email address.
+ * @returns True if the sender is blocklisted.
  */
 export async function checkBlocklist(from: string): Promise<boolean> {
   const normalized = from.toLowerCase().trim();
@@ -60,7 +74,10 @@ export async function checkBlocklist(from: string): Promise<boolean> {
 }
 
 /**
- * Evaluate spam using OpenRouter AI
+ * Evaluates spam using OpenRouter AI.
+ * @param email - The email content to evaluate.
+ * @param config - Server configuration.
+ * @returns Spam evaluation result.
  */
 async function evaluateWithAI(
   email: EmailContent,
@@ -169,9 +186,11 @@ Respond with ONLY a JSON object (no markdown, no explanation):
 }
 
 /**
- * Main spam evaluation function
- * 
- * Two-stage: blocklist check (fast), then AI evaluation
+ * Main spam evaluation function.
+ * Two-stage: blocklist check (fast), then AI evaluation.
+ * @param email - The email content to evaluate.
+ * @param config - Server configuration.
+ * @returns Spam evaluation result.
  */
 export async function evaluateSpam(
   email: EmailContent,

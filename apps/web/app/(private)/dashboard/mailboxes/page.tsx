@@ -1,3 +1,8 @@
+/**
+ * Mailboxes management page.
+ * @module app/(private)/dashboard/mailboxes/page
+ */
+
 "use client";
 
 import { useState } from "react";

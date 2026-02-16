@@ -1,3 +1,8 @@
+/**
+ * Convex provider configuration.
+ * @module components/providers/convex
+ */
+
 "use client";
 
 import { ConvexProvider, ConvexReactClient } from "convex/react";

@@ -1,3 +1,8 @@
+/**
+ * Settings page for domain and account configuration.
+ * @module app/(private)/dashboard/settings/page
+ */
+
 "use client";
 
 import { useState } from "react";
