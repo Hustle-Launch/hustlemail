@@ -1,43 +1,39 @@
 /**
  * DKIM key generation utilities.
- * In production, use proper crypto. For MVP, uses placeholder logic.
+ * Uses Node.js crypto for real RSA-2048 key pair generation.
+ * Must be called from a Convex action (Node.js runtime).
  */
+
+import { generateKeyPairSync, createSign } from "node:crypto";
 
 /**
- * Generates DKIM keys for a domain.
+ * Generates a 2048-bit RSA DKIM key pair for a domain.
  * @param domain - The domain name to generate keys for.
- * @returns Object containing selector, publicKey, and privateKey.
+ * @returns Object containing selector, publicKey (base64 DER), and privateKey (PEM).
  */
 export async function generateDKIMKeys(domain: string) {
-  // Generate a unique selector based on timestamp
   const selector = `codemail${Date.now().toString(36)}`;
 
-  // In production, use node:crypto to generate RSA keys
-  // For MVP, we'll use placeholder values that would be replaced
-  // with actual generated keys
+  const { publicKey, privateKey } = generateKeyPairSync("rsa", {
+    modulusLength: 2048,
+    publicKeyEncoding: {
+      type: "spki",
+      format: "der",
+    },
+    privateKeyEncoding: {
+      type: "pkcs8",
+      format: "pem",
+    },
+  });
 
-  const publicKey = `MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA${generateRandomBase64(256)}`;
-  const privateKey = `MIIEvQIBADANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA${generateRandomBase64(1024)}`;
+  // Convert DER public key to base64 for DNS TXT record
+  const publicKeyBase64 = Buffer.from(publicKey).toString("base64");
 
   return {
     selector,
-    publicKey,
-    privateKey,
+    publicKey: publicKeyBase64,
+    privateKey: privateKey as string,
   };
-}
-
-/**
- * Generates a random base64-like string.
- * @param length - The length of the string to generate.
- * @returns A random string of the specified length.
- */
-function generateRandomBase64(length: number): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-  let result = "";
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
 }
 
 /**
@@ -57,7 +53,34 @@ export function signMessage(
   headers: Record<string, string>,
   body: string
 ): string {
-  // In production, implement proper DKIM signing
-  // For MVP, return a placeholder signature
-  return `v=1; a=rsa-sha256; c=relaxed/relaxed; d=${domain}; s=${selector}; h=from:to:subject:date; bh=placeholder; b=placeholder`;
+  const { createHash } = require("node:crypto");
+
+  // Canonicalize body (relaxed): trim trailing whitespace per line, ensure single CRLF at end
+  const canonBody = body
+    .split("\n")
+    .map((line: string) => line.replace(/[ \t]+$/g, ""))
+    .join("\r\n")
+    .replace(/(\r\n)+$/g, "\r\n");
+
+  // Body hash
+  const bodyHash = createHash("sha256").update(canonBody).digest("base64");
+
+  // Header fields to sign
+  const signedHeaders = Object.keys(headers).map((h) => h.toLowerCase());
+  const headerCanon = signedHeaders
+    .map((h) => `${h}:${(headers[h] || headers[h.charAt(0).toUpperCase() + h.slice(1)] || "").trim()}`)
+    .join("\r\n");
+
+  // Build DKIM header (without b= value)
+  const dkimHeader =
+    `v=1; a=rsa-sha256; c=relaxed/relaxed; d=${domain}; s=${selector}; ` +
+    `h=${signedHeaders.join(":")}; bh=${bodyHash}; b=`;
+
+  // Sign
+  const dataToSign = `${headerCanon}\r\ndkim-signature:${dkimHeader}`;
+  const signer = createSign("RSA-SHA256");
+  signer.update(dataToSign);
+  const signature = signer.sign(privateKey, "base64");
+
+  return `${dkimHeader}${signature}`;
 }
