@@ -516,3 +516,31 @@ export const inviteUserToMailbox = mutation({
     return { success: true };
   },
 });
+
+/**
+ * Update DKIM keys for a domain (called from dkimActions only).
+ * Stores encrypted private key — never plaintext.
+ */
+export const updateDomainDKIM = mutation({
+  args: {
+    domainId: v.id("domains"),
+    selector: v.string(),
+    publicKey: v.string(),
+    encryptedPrivateKey: v.string(),
+  },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) throw new Error("Unauthenticated");
+
+    const domain = await ctx.db.get(args.domainId);
+    if (!domain || domain.ownerId !== identity.subject) {
+      throw new Error("Domain not found or unauthorized");
+    }
+
+    await ctx.db.patch(args.domainId, {
+      dkimSelector: args.selector,
+      dkimPublicKey: args.publicKey,
+      dkimPrivateKey: args.encryptedPrivateKey, // AES-256-GCM encrypted
+    });
+  },
+});

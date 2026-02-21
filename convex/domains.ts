@@ -243,3 +243,17 @@ export const remove = mutation({
     await ctx.db.delete(args.id);
   },
 });
+
+/**
+ * Get a domain by ID (used internally by DKIM signing action).
+ */
+export const getById = query({
+  args: { id: v.id("domains") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return null;
+    const domain = await ctx.db.get(args.id);
+    if (!domain || domain.ownerId !== identity.subject) return null;
+    return domain;
+  },
+});
