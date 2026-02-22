@@ -70,65 +70,91 @@ export async function GET(
   // Verify current DNS configuration
   const checks: DnsRecordCheck[] = [];
 
-  try {
-    // Check MX
-    const mxRecords = await dns.resolveMx(domain).catch(() => []);
-    const hasMx = mxRecords.some((r) => r.exchange.includes("mail." + domain));
-    checks.push({
-      type: "MX",
-      host: domain,
-      expectedValue: records.mx.value,
-      actualValue: mxRecords.map((r) => `${r.priority} ${r.exchange}`).join(", ") || "Not set",
-      status: hasMx ? "pass" : "fail",
-    });
-
-    // Check SPF
-    const txtRecords = await dns.resolveTxt(domain).catch(() => []);
-    const spfRecord = txtRecords.flat().find((r) => r.startsWith("v=spf1"));
-    const hasSpf = spfRecord?.includes("resend.com");
-    checks.push({
-      type: "TXT (SPF)",
-      host: domain,
-      expectedValue: records.spf.value,
-      actualValue: spfRecord || "Not set",
-      status: hasSpf ? "pass" : "fail",
-    });
-
-    // Check DKIM
-    const dkimRecords = await dns.resolveTxt(`codemail._domainkey.${domain}`).catch(() => []);
-    const dkimRecord = dkimRecords.flat().find((r) => r.startsWith("v=DKIM1"));
-    checks.push({
-      type: "TXT (DKIM)",
-      host: `codemail._domainkey.${domain}`,
-      expectedValue: records.dkim.value,
-      actualValue: dkimRecord || "Not set",
-      status: dkimRecord ? "pass" : "fail",
-    });
-
-    // Check DMARC
-    const dmarcRecords = await dns.resolveTxt(`_dmarc.${domain}`).catch(() => []);
-    const dmarcRecord = dmarcRecords.flat().find((r) => r.startsWith("v=DMARC1"));
-    checks.push({
-      type: "TXT (DMARC)",
-      host: `_dmarc.${domain}`,
-      expectedValue: records.dmarc.value,
-      actualValue: dmarcRecord || "Not set",
-      status: dmarcRecord ? "pass" : "pending", // DMARC is optional
-    });
-
-    // Check CNAME for webmail
-    const cnameRecords = await dns.resolveCname(`mail.${domain}`).catch(() => []);
-    const hasCname = cnameRecords.some((r) => r.includes("codemail"));
-    checks.push({
-      type: "CNAME",
-      host: `mail.${domain}`,
-      expectedValue: records.webmail.value,
-      actualValue: cnameRecords[0] || "Not set",
-      status: hasCname ? "pass" : "fail",
-    });
-  } catch (error) {
-    console.error("DNS lookup error:", error);
+  /**
+   * Resolve DNS records with proper error discrimination.
+   * Returns { data, error } where error contains code + message for non-NODATA failures.
+   */
+  async function resolveDns<T>(
+    fn: () => Promise<T>,
+    fallback: T
+  ): Promise<{ data: T; error?: { code: string; message: string } }> {
+    try {
+      return { data: await fn() };
+    } catch (err: unknown) {
+      const code = (err as NodeJS.ErrnoException).code ?? "UNKNOWN";
+      // NODATA / NOTFOUND = record simply doesn't exist yet
+      if (code === "ENODATA" || code === "ENOTFOUND") {
+        return { data: fallback };
+      }
+      // Temporary / server failures — surface to the user
+      const messages: Record<string, string> = {
+        SERVFAIL: "DNS server failed to respond — try again shortly",
+        TIMEOUT: "DNS lookup timed out — try again shortly",
+        CONNREFUSED: "Could not reach DNS server",
+        FORMERR: "Malformed DNS query — check domain format",
+      };
+      return {
+        data: fallback,
+        error: { code, message: messages[code] ?? `DNS error: ${code}` },
+      };
+    }
   }
+
+  // Check MX
+  const mx = await resolveDns(() => dns.resolveMx(domain), [] as dns.MxRecord[]);
+  const hasMx = mx.data.some((r) => r.exchange.includes("mail." + domain));
+  checks.push({
+    type: "MX",
+    host: domain,
+    expectedValue: records.mx.value,
+    actualValue: mx.error?.message ?? mx.data.map((r) => `${r.priority} ${r.exchange}`).join(", ") || "Not set",
+    status: mx.error ? "fail" : hasMx ? "pass" : "fail",
+  });
+
+  // Check SPF
+  const txt = await resolveDns(() => dns.resolveTxt(domain), [] as string[][]);
+  const spfRecord = txt.data.flat().find((r) => r.startsWith("v=spf1"));
+  const hasSpf = spfRecord?.includes("resend.com");
+  checks.push({
+    type: "TXT (SPF)",
+    host: domain,
+    expectedValue: records.spf.value,
+    actualValue: txt.error?.message ?? spfRecord ?? "Not set",
+    status: txt.error ? "fail" : hasSpf ? "pass" : "fail",
+  });
+
+  // Check DKIM
+  const dkim = await resolveDns(() => dns.resolveTxt(`codemail._domainkey.${domain}`), [] as string[][]);
+  const dkimRecord = dkim.data.flat().find((r) => r.startsWith("v=DKIM1"));
+  checks.push({
+    type: "TXT (DKIM)",
+    host: `codemail._domainkey.${domain}`,
+    expectedValue: records.dkim.value,
+    actualValue: dkim.error?.message ?? dkimRecord ?? "Not set",
+    status: dkim.error ? "fail" : dkimRecord ? "pass" : "fail",
+  });
+
+  // Check DMARC
+  const dmarc = await resolveDns(() => dns.resolveTxt(`_dmarc.${domain}`), [] as string[][]);
+  const dmarcRecord = dmarc.data.flat().find((r) => r.startsWith("v=DMARC1"));
+  checks.push({
+    type: "TXT (DMARC)",
+    host: `_dmarc.${domain}`,
+    expectedValue: records.dmarc.value,
+    actualValue: dmarc.error?.message ?? dmarcRecord ?? "Not set",
+    status: dmarc.error ? "fail" : dmarcRecord ? "pass" : "pending",
+  });
+
+  // Check CNAME for webmail
+  const cname = await resolveDns(() => dns.resolveCname(`mail.${domain}`), [] as string[]);
+  const hasCname = cname.data.some((r) => r.includes("codemail"));
+  checks.push({
+    type: "CNAME",
+    host: `mail.${domain}`,
+    expectedValue: records.webmail.value,
+    actualValue: cname.error?.message ?? cname.data[0] ?? "Not set",
+    status: cname.error ? "fail" : hasCname ? "pass" : "fail",
+  });
 
   const allPassing = checks.filter((c) => c.status !== "pending").every((c) => c.status === "pass");
 
