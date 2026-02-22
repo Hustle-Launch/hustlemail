@@ -137,6 +137,10 @@ export default defineSchema({
     // Spam evaluation
     spamScore: v.optional(v.number()),
     spamReason: v.optional(v.string()),
+    // Sender authentication results (SPF/DKIM)
+    spfResult: v.optional(v.string()),   // "pass" | "fail" | "softfail" | "neutral" | "none" | "temperror" | "permerror"
+    dkimResult: v.optional(v.string()),  // "pass" | "fail" | "none" — best result across all signatures
+    authHeaders: v.optional(v.string()), // Raw Authentication-Results header for audit
     // Timestamps
     date: v.number(), // Email Date header
     receivedAt: v.number(), // When we received it

@@ -112,6 +112,10 @@ export const storeMessage = internalMutation({
     isSpam: v.boolean(),
     spamScore: v.optional(v.number()),
     spamReason: v.optional(v.string()),
+    // Sender authentication results (SPF/DKIM)
+    spfResult: v.optional(v.string()),
+    dkimResult: v.optional(v.string()),
+    authHeaders: v.optional(v.string()),
   },
   handler: async (ctx, args) => {
     // Convert string IDs to Convex IDs
@@ -177,6 +181,9 @@ export const storeMessage = internalMutation({
       isTrashed: false,
       spamScore: args.spamScore,
       spamReason: args.spamReason,
+      spfResult: args.spfResult,
+      dkimResult: args.dkimResult,
+      authHeaders: args.authHeaders,
       date: args.date,
       receivedAt: Date.now(),
     });

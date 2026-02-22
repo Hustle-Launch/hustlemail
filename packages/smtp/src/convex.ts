@@ -50,6 +50,12 @@ export interface MessageInput {
   spamScore?: number;
   /** Spam classification reason. */
   spamReason?: string;
+  /** SPF verification result: "pass" | "fail" | "softfail" | "neutral" | "none" | "temperror" | "permerror" */
+  spfResult?: string;
+  /** DKIM verification result: "pass" | "fail" | "none" (best result across all signatures) */
+  dkimResult?: string;
+  /** Raw Authentication-Results header for audit trail */
+  authHeaders?: string;
 }
 
 /** Mailbox information from Convex. */

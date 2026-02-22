@@ -36,6 +36,19 @@ export interface Config {
   
   /** Logging level. */
   logLevel: 'debug' | 'info' | 'warn' | 'error';
+
+  /**
+   * When true, hard-reject messages where BOTH SPF and DKIM fail.
+   * When false (default), auth failures increase spam score but do not block.
+   * Set SMTP_REJECT_AUTH_FAIL=true to enable strict mode.
+   */
+  rejectAuthFail: boolean;
+
+  /**
+   * Our MTA hostname, reported in Authentication-Results headers.
+   * Defaults to SMTP_HOST or the system hostname.
+   */
+  mtaHostname: string;
 }
 
 /**
@@ -90,5 +103,9 @@ export function loadConfig(): Config {
     
     // Logging
     logLevel: (process.env.LOG_LEVEL || 'info') as Config['logLevel'],
+
+    // SPF/DKIM enforcement
+    rejectAuthFail: process.env.SMTP_REJECT_AUTH_FAIL === 'true',
+    mtaHostname: process.env.MTA_HOSTNAME || process.env.SMTP_HOST || 'mail.codemail.dev',
   };
 }

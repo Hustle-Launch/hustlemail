@@ -13,8 +13,9 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "smtp-server": "^3.13.6",
-    "mailparser": "^3.7.2"
+    "mailauth": "^4.13.0",
+    "mailparser": "^3.7.2",
+    "smtp-server": "^3.13.6"
   },
   "devDependencies": {
     "@types/mailparser": "^3.4.5",

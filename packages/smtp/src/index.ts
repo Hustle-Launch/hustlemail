@@ -12,6 +12,7 @@ import { SMTPServer, type SMTPServerOptions } from 'smtp-server';
 import type { SMTPServerAddress, SMTPServerSession } from 'smtp-server';
 import { simpleParser } from 'mailparser';
 import type { ParsedMail, Attachment } from 'mailparser';
+import { authenticate } from 'mailauth';
 import * as fs from 'fs';
 import type { Readable } from 'stream';
 
@@ -25,6 +26,21 @@ import {
   parseSingleAddress,
   type MessageInput,
 } from './convex.js';
+
+/**
+ * Collects a Readable stream into a single Buffer.
+ * Required so we can pass the raw bytes to both mailauth and mailparser.
+ */
+function bufferStream(stream: Readable): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    stream.on('data', (chunk: Buffer | string) =>
+      chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+    );
+    stream.on('end', () => resolve(Buffer.concat(chunks)));
+    stream.on('error', reject);
+  });
+}
 
 /** Session data stored during SMTP transaction. */
 interface SessionData {
@@ -216,8 +232,83 @@ async function onData(
   logger.info('Receiving message data', { sessionId: session.id });
 
   try {
+    // Buffer the raw message so we can run both mailauth and mailparser on it.
+    const rawMessage = await bufferStream(stream);
+
+    // ── SPF / DKIM verification ───────────────────────────────────────────
+    // Extract envelope metadata from the SMTP session.
+    const mailFromEnvelope = session.envelope?.mailFrom;
+    const senderAddress =
+      mailFromEnvelope && typeof mailFromEnvelope === 'object'
+        ? (mailFromEnvelope.address ?? '')
+        : '';
+    const heloHostname = (session as unknown as { hostNameAppearsAs?: string }).hostNameAppearsAs ?? '';
+
+    let spfResult = 'none';
+    let dkimResult = 'none';
+    let authResultsHeader = '';
+
+    try {
+      const authResult = await authenticate(rawMessage, {
+        ip: session.remoteAddress,
+        helo: heloHostname,
+        sender: senderAddress,
+        mta: config.mtaHostname,
+        disableArc: true,
+        disableDmarc: false,
+        disableBimi: true,
+      });
+
+      // SPF result
+      if (authResult.spf) {
+        spfResult = authResult.spf.status?.result ?? 'none';
+      }
+
+      // DKIM result — best result across all signatures
+      if (authResult.dkim?.results?.length) {
+        const hasDkimPass = authResult.dkim.results.some(
+          (r) => r.status?.result === 'pass'
+        );
+        dkimResult = hasDkimPass ? 'pass' : (authResult.dkim.results[0]?.status?.result ?? 'none');
+      }
+
+      // Combined Authentication-Results header for audit
+      authResultsHeader = authResult.headers ?? '';
+
+      logger.info('Auth verification', {
+        sessionId: session.id,
+        from: senderAddress,
+        spf: spfResult,
+        dkim: dkimResult,
+      });
+    } catch (authErr) {
+      logger.warn('Auth verification failed (non-fatal)', {
+        sessionId: session.id,
+        error: authErr,
+      });
+    }
+
+    // ── Hard-reject if both SPF and DKIM fail (strict mode) ──────────────
+    const spfFail = spfResult === 'fail' || spfResult === 'softfail';
+    const dkimFail = dkimResult === 'fail';
+
+    if (config.rejectAuthFail && spfFail && dkimFail) {
+      logger.info('Message rejected: SPF and DKIM both failed', {
+        from: senderAddress,
+        spf: spfResult,
+        dkim: dkimResult,
+      });
+      callback(
+        new Error(
+          `550 5.7.26 Message rejected: sender failed both SPF (${spfResult}) ` +
+            `and DKIM (${dkimResult}) verification. See https://dmarcian.com/what-is-dmarc/ for details.`
+        )
+      );
+      return;
+    }
+
     // Parse the email
-    const parsed: ParsedMail = await simpleParser(stream as Readable);
+    const parsed: ParsedMail = await simpleParser(rawMessage);
     
     logger.debug('Email parsed', {
       messageId: parsed.messageId,
@@ -241,7 +332,7 @@ async function onData(
     }
 
     // Evaluate spam
-    const spamResult = await evaluateSpam(
+    let spamResult = await evaluateSpam(
       {
         from: fromAddr.address,
         to: sessionData.recipients.map((r) => r.address),
@@ -251,6 +342,29 @@ async function onData(
       },
       config
     );
+
+    // ── Boost spam score based on auth failures ───────────────────────────
+    // SPF fail/softfail and DKIM fail both indicate possible forging.
+    // We don't hard-reject here (see rejectAuthFail above), but we do push
+    // the spam score up so the message is more likely to be flagged.
+    let authPenalty = 0;
+    if (spfFail) authPenalty += 20;
+    if (dkimFail) authPenalty += 20;
+    if (authPenalty > 0) {
+      spamResult = {
+        ...spamResult,
+        score: Math.min(100, spamResult.score + authPenalty),
+        reason: [spamResult.reason, `Auth: SPF=${spfResult}, DKIM=${dkimResult}`]
+          .filter(Boolean)
+          .join('; '),
+      };
+      logger.debug('Spam score adjusted for auth failures', {
+        adjustment: authPenalty,
+        newScore: spamResult.score,
+        spf: spfResult,
+        dkim: dkimResult,
+      });
+    }
 
     // Check if spam score exceeds threshold
     const spamThreshold = sessionData.domain?.config.spamThreshold ?? 50;
@@ -325,6 +439,10 @@ async function onData(
           isSpam: spamResult.isSpam,
           spamScore: spamResult.score,
           spamReason: spamResult.reason,
+          // Sender authentication results
+          spfResult: spfResult !== 'none' ? spfResult : undefined,
+          dkimResult: dkimResult !== 'none' ? dkimResult : undefined,
+          authHeaders: authResultsHeader || undefined,
         };
 
         // Store in Convex
