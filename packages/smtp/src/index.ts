@@ -19,7 +19,8 @@ import { loadConfig, type Config } from './config.js';
 import { logger, setLogLevel } from './logger.js';
 import { evaluateSpam } from './spam.js';
 import {
-  ConvexClient,
+  createConvexClient,
+  type IConvexClient,
   parseAddress,
   parseSingleAddress,
   type MessageInput,
@@ -57,7 +58,7 @@ declare module 'smtp-server' {
 /** Server configuration. */
 let config: Config;
 /** Convex client instance. */
-let convex: ConvexClient;
+let convex: IConvexClient;
 
 /**
  * Handles RCPT TO command - validates that recipient mailbox exists.
@@ -394,7 +395,7 @@ async function main(): Promise<void> {
 
   // Initialize Convex client
   console.log('[SMTP] Initializing Convex client...');
-  convex = new ConvexClient(config);
+  convex = createConvexClient(config);
   console.log('[SMTP] Convex client initialized');
 
   // Create and start server
