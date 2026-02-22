@@ -115,6 +115,17 @@ async function onRcptTo(
 }
 
 /**
+ * Formats a byte count as a human-readable string (e.g. "4.2 MB").
+ * @param bytes - Byte count.
+ * @returns Formatted string.
+ */
+function formatBytes(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+/**
  * Processes attachments - stores small ones inline, handles large ones per strategy.
  * @param attachments - Array of attachments from parsed email.
  * @param domainId - Domain ID for storage context.
@@ -166,11 +177,13 @@ async function processAttachments(
           break;
         
         case 'bounce':
-          // Skip large attachments
-          logger.warn('Skipping large attachment (bounce strategy)', {
-            filename: attachment.filename,
-            size,
-          });
+          // Defensive fallback: onData should have already rejected the message at SMTP
+          // level before reaching this point (see early bounce check in onData).
+          // If we somehow get here, log a warning and skip rather than silently corrupt.
+          logger.warn(
+            'processAttachments reached bounce case — message should have been rejected upstream',
+            { filename: attachment.filename, size }
+          );
           break;
         
         case 'byo':
@@ -253,6 +266,33 @@ async function onData(
       return;
     }
 
+    // Reject at SMTP level if bounce strategy and oversized attachments are present.
+    // This prevents silent data loss — the sending MTA generates a proper NDR to the sender.
+    const strategy = sessionData.domain?.config.largeFileStrategy ?? 'bounce';
+    const maxAttachmentSize = sessionData.domain?.config.maxAttachmentSize ?? 1024 * 1024;
+    if (strategy === 'bounce') {
+      const oversized = (parsed.attachments ?? []).filter(
+        (a) => (a.size || a.content?.length || 0) > maxAttachmentSize
+      );
+      if (oversized.length > 0) {
+        const first = oversized[0];
+        const size = first.size || first.content?.length || 0;
+        logger.info('Rejecting message: oversized attachment with bounce strategy', {
+          filename: first.filename,
+          size,
+          limit: maxAttachmentSize,
+        });
+        callback(
+          new Error(
+            `552 5.3.4 Message too large: attachment '${first.filename ?? 'attachment'}' ` +
+              `(${formatBytes(size)}) exceeds the ${formatBytes(maxAttachmentSize)} limit. ` +
+              `Please re-send with your file hosted on Google Drive, Dropbox, or similar.`
+          )
+        );
+        return;
+      }
+    }
+
     // Process each recipient
     for (const recipient of sessionData.recipients) {
       try {
@@ -260,8 +300,8 @@ async function onData(
         const attachments = await processAttachments(
           parsed.attachments || [],
           recipient.domainId,
-          sessionData.domain?.config.maxAttachmentSize || 1024 * 1024,
-          sessionData.domain?.config.largeFileStrategy || 'bounce'
+          maxAttachmentSize,
+          strategy
         );
 
         // Build message input

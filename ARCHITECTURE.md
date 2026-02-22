@@ -48,7 +48,7 @@ Convex fundamentally changes email architecture by providing real-time subscript
 
 ### SMTP Ingress (Port 25)
 
-Serverless function that:
+Persistent TCP server (Node.js `smtp-server`) that:
 1. Receives inbound mail via SMTP protocol
 2. Validates recipient exists in domain config
 3. Runs spam evaluation pipeline
@@ -211,21 +211,37 @@ export default defineSchema({
 
 ## Deployment Targets
 
-The serverless components deploy to:
-- AWS Lambda
-- Cloudflare Workers
-- Fly.io
-- Vercel Edge Functions
-- Docker (self-hosted)
+Components have **different deployment requirements**:
+
+### Web App (Next.js)
+- ✅ Vercel (recommended)
+- ✅ Any Node.js host or Docker container
+
+### Convex Backend
+- ✅ Convex Cloud (managed, recommended)
+
+### SMTP Ingress (`packages/smtp`)
+> ⚠️ **Must run on a persistent server with a static IP — Lambda, Cloudflare Workers, and Vercel Edge Functions will not work.**
+>
+> SMTP requires a persistent TCP connection on port 25, a static IP address (email reputation is IP-tied), and a configurable PTR (reverse DNS) record. Serverless platforms do not support any of these.
+
+Supported deployment targets:
+- ✅ **Fly.io** (recommended) — persistent VMs, dedicated IPs, PTR records configurable
+- ✅ **Hetzner / DigitalOcean VPS** — cheapest option, full control over PTR records
+- ✅ **EC2** — static Elastic IP + port 25 unblock request + PTR via AWS console
+- ✅ **Docker** (self-hosted on any VPS)
+- ❌ AWS Lambda — no persistent TCP, dynamic IPs, port 25 blocked by default
+- ❌ Cloudflare Workers — HTTP-only, no TCP server support
+- ❌ Vercel Edge Functions — HTTP-only, no TCP server support
 
 ## Cost Model
 
 | Resource | Cost Driver |
 |----------|-------------|
 | Convex | Per-operation (free tier covers thousands of emails) |
-| SMTP/IMAP Lambda | Per-invocation (pennies) |
-| S3 Attachments | Per-GB stored + bandwidth |
-| Resend | Per-email sent |
+| SMTP server (Fly.io) | ~$7/month for a persistent micro VM |
+| S3/R2 Attachments | Per-GB stored + bandwidth |
+| Resend (transactional only) | Per-email sent (see #31 re: outbound architecture) |
 | OpenRouter | Per-token (free models available) |
 
-**Estimated cost for 5-person team, 1000 emails/month: $0-5/month**
+**Estimated cost for 5-person team, 1000 emails/month: ~$10-15/month** (Fly.io VM is the floor)

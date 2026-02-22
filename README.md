@@ -143,12 +143,11 @@ cd codemail
 # Deploy Convex backend
 npx convex deploy
 
-# Deploy SMTP ingress (pick your platform)
-cd packages/smtp && serverless deploy  # AWS Lambda
+# Deploy SMTP ingress — requires a persistent server with static IP
+# (Lambda/Cloudflare Workers/Vercel will NOT work — see ARCHITECTURE.md)
+fly deploy                              # Fly.io (recommended)
 # or
-fly deploy                              # Fly.io
-# or
-docker-compose up                       # Docker
+docker-compose up                       # Docker on any VPS (Hetzner, DO, EC2)
 
 # Deploy web mail
 cd apps/web && vercel deploy
