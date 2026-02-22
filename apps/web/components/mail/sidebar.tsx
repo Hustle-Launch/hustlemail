@@ -54,7 +54,7 @@ import {
 
 /** Primary navigation items with icons and optional badge counts. */
 const navigation = [
-  { name: "Inbox", href: "/mail/inbox", icon: Inbox, badge: 12 },
+  { name: "Inbox", href: "/mail/inbox", icon: Inbox },
   { name: "Sent", href: "/mail/sent", icon: Send },
   { name: "Starred", href: "/mail/starred", icon: Star },
   { name: "Archive", href: "/mail/archive", icon: Archive },
