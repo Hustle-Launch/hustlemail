@@ -1,5 +1,5 @@
 /**
- * Search folder page displaying search messages.
+ * MagnifyingGlass folder page displaying search messages.
  * @module app/(private)/mail/search/page
  */
 
@@ -7,7 +7,7 @@
 
 import { Suspense, useState, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, X, SlidersHorizontal, Loader2 } from "lucide-react";
+import { MagnifyingGlass, X, SlidersHorizontal, CircleNotch } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -112,14 +112,14 @@ function SearchContent() {
 
   return (
     <div className="flex flex-col h-full">
-      {/* Search header */}
+      {/* MagnifyingGlass header */}
       <div className="p-4 border-b space-y-3 shrink-0">
         <div className="flex items-center gap-2">
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <MagnifyingGlass className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
               type="text"
-              placeholder="Search emails... (try: from:github.com or has:attachment)"
+              placeholder="MagnifyingGlass emails... (try: from:github.com or has:attachment)"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
@@ -148,7 +148,7 @@ function SearchContent() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56">
-              <DropdownMenuLabel>Search filters</DropdownMenuLabel>
+              <DropdownMenuLabel>MagnifyingGlass filters</DropdownMenuLabel>
               <DropdownMenuSeparator />
               {searchFilters.map((filter) => (
                 <DropdownMenuItem
@@ -163,7 +163,7 @@ function SearchContent() {
           </DropdownMenu>
           
           <Button onClick={() => handleSearch(query)} disabled={isSearching}>
-            {isSearching ? "Searching..." : "Search"}
+            {isSearching ? "Searching..." : "MagnifyingGlass"}
           </Button>
         </div>
 
@@ -200,7 +200,7 @@ function SearchContent() {
           </>
         ) : query ? (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
-            <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <MagnifyingGlass className="h-12 w-12 text-muted-foreground/50 mb-4" />
             <h3 className="text-lg font-medium">No results found</h3>
             <p className="text-muted-foreground text-sm mt-1">
               Try different keywords or search filters
@@ -208,8 +208,8 @@ function SearchContent() {
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center h-full text-center p-8">
-            <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <h3 className="text-lg font-medium">Search your emails</h3>
+            <MagnifyingGlass className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <h3 className="text-lg font-medium">MagnifyingGlass your emails</h3>
             <p className="text-muted-foreground text-sm mt-1 max-w-md">
               Use filters like <code className="font-mono bg-muted px-1 rounded">from:</code>,{" "}
               <code className="font-mono bg-muted px-1 rounded">has:attachment</code>, or{" "}
@@ -227,7 +227,7 @@ export default function SearchPage() {
     <Suspense
       fallback={
         <div className="flex h-full items-center justify-center">
-          <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
+          <CircleNotch className="h-8 w-8 animate-spin text-zinc-500" />
         </div>
       }
     >

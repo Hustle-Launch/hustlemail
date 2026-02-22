@@ -9,11 +9,11 @@ import {
   BarChart3,
   TrendingUp,
   TrendingDown,
-  Mail,
+  Envelope,
   Shield,
-  Send,
+  PaperPlaneTilt,
   Inbox,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 
 // Mock data
 const stats = [
@@ -29,7 +29,7 @@ const stats = [
     value: "567",
     change: "+8%",
     trend: "up",
-    icon: Send,
+    icon: PaperPlaneTilt,
   },
   {
     name: "Spam Blocked",
@@ -43,7 +43,7 @@ const stats = [
     value: "2.4h",
     change: "-15%",
     trend: "down",
-    icon: Mail,
+    icon: Envelope,
   },
 ];
 

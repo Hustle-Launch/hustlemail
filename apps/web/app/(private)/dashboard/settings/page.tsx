@@ -12,12 +12,12 @@ import {
   Bell,
   Shield,
   Code,
-  Trash2,
+  Trash,
   Copy,
   Check,
   Eye,
   EyeOff,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -229,7 +229,7 @@ export default function SettingsPage() {
       <section className="rounded-xl border border-red-900/50 bg-red-950/20 p-6">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-500/10">
-            <Trash2 className="h-5 w-5 text-red-400" />
+            <Trash className="h-5 w-5 text-red-400" />
           </div>
           <div>
             <h2 className="text-lg font-medium text-white">Danger Zone</h2>

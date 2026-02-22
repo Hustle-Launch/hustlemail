@@ -14,11 +14,11 @@ import {
   Check,
   Copy,
   ExternalLink,
-  Loader2,
+  CircleNotch,
   Terminal,
-  Mail,
+  Envelope,
   Users,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -225,7 +225,7 @@ export default function NewDomainPage() {
                   className="flex items-center justify-between rounded-lg bg-zinc-800 px-4 py-3"
                 >
                   <div className="flex items-center gap-3">
-                    <Mail className="h-4 w-4 text-zinc-400" />
+                    <Envelope className="h-4 w-4 text-zinc-400" />
                     <span className="text-white">
                       {mb.name}@{domain}
                     </span>
@@ -387,7 +387,7 @@ export default function NewDomainPage() {
             <div className="flex flex-col items-center py-8">
               {isVerifying ? (
                 <>
-                  <Loader2 className="h-12 w-12 animate-spin text-indigo-400" />
+                  <CircleNotch className="h-12 w-12 animate-spin text-indigo-400" />
                   <p className="mt-4 text-zinc-400">Verifying DNS records...</p>
                 </>
               ) : (
@@ -448,8 +448,8 @@ export default function NewDomainPage() {
                 onClick={() => router.push("/mail/inbox")}
                 className="bg-indigo-600 hover:bg-indigo-500"
               >
-                <Mail className="mr-2 h-4 w-4" />
-                Open Web Mail
+                <Envelope className="mr-2 h-4 w-4" />
+                Open Web Envelope
               </Button>
               <Button
                 onClick={() => router.push("/dashboard")}

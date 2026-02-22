@@ -5,7 +5,7 @@
  */
 
 import Link from "next/link";
-import { Mail, ArrowLeft } from "lucide-react";
+import { Envelope, ArrowLeft } from "@phosphor-icons/react";
 
 /**
  * Not Found page component.
@@ -17,7 +17,7 @@ export default function NotFound() {
       <div className="text-center">
         <div className="mb-8 flex justify-center">
           <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-zinc-800">
-            <Mail className="h-10 w-10 text-zinc-500" />
+            <Envelope className="h-10 w-10 text-zinc-500" />
           </div>
         </div>
         

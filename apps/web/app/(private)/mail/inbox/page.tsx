@@ -8,7 +8,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { RefreshCw, Settings2, Filter } from "lucide-react";
+import { ArrowClockwise, GearSix, Funnel } from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -175,7 +175,7 @@ export default function InboxPage() {
           onClick={handleRefresh}
           disabled={isRefreshing}
         >
-          <RefreshCw
+          <ArrowClockwise
             className={`h-4 w-4 ${isRefreshing ? "animate-spin" : ""}`}
           />
         </Button>
@@ -183,11 +183,11 @@ export default function InboxPage() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
-              <Filter className="h-4 w-4" />
+              <Funnel className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
-            <DropdownMenuLabel>Filter by</DropdownMenuLabel>
+            <DropdownMenuLabel>Funnel by</DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuItem>All messages</DropdownMenuItem>
             <DropdownMenuItem>Unread only</DropdownMenuItem>
@@ -199,7 +199,7 @@ export default function InboxPage() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" size="icon">
-              <Settings2 className="h-4 w-4" />
+              <GearSix className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">

@@ -7,16 +7,16 @@
 
 import { useState } from "react";
 import {
-  Mail,
+  Envelope,
   Plus,
   MoreVertical,
   Users,
   User,
   Forward,
-  Trash2,
+  Trash,
   Settings,
-  Search,
-} from "lucide-react";
+  MagnifyingGlass,
+} from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -108,12 +108,12 @@ export default function MailboxesPage() {
         </Button>
       </div>
 
-      {/* Search */}
+      {/* MagnifyingGlass */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+        <MagnifyingGlass className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
         <Input
           type="text"
-          placeholder="Search mailboxes..."
+          placeholder="MagnifyingGlass mailboxes..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="bg-zinc-900 pl-10"
@@ -142,7 +142,7 @@ export default function MailboxesPage() {
                 <td className="px-4 py-4">
                   <div className="flex items-center gap-3">
                     <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-zinc-800">
-                      <Mail className="h-4 w-4 text-zinc-400" />
+                      <Envelope className="h-4 w-4 text-zinc-400" />
                     </div>
                     <span className="font-medium text-white">
                       {mb.name}@{mb.domain}
@@ -178,7 +178,7 @@ export default function MailboxesPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem>
-                        <Mail className="mr-2 h-4 w-4" />
+                        <Envelope className="mr-2 h-4 w-4" />
                         Open Inbox
                       </DropdownMenuItem>
                       <DropdownMenuItem>
@@ -186,7 +186,7 @@ export default function MailboxesPage() {
                         Settings
                       </DropdownMenuItem>
                       <DropdownMenuItem className="text-red-400">
-                        <Trash2 className="mr-2 h-4 w-4" />
+                        <Trash className="mr-2 h-4 w-4" />
                         Delete
                       </DropdownMenuItem>
                     </DropdownMenuContent>

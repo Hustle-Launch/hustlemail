@@ -5,7 +5,7 @@
 
 "use client";
 
-import { Star } from "lucide-react";
+import { Star } from "@phosphor-icons/react";
 
 export default function StarredPage() {
   return (

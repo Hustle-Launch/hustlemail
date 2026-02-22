@@ -13,10 +13,10 @@ import {
   Paperclip,
   MoreHorizontal,
   Archive,
-  Trash2,
-  Mail,
+  Trash,
+  Envelope,
   MailOpen,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import { cn, formatDate, truncate, getInitials } from "@/lib/utils";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -127,7 +127,7 @@ export function MessageList({
     return (
       <div className="flex flex-col items-center justify-center h-full text-center p-8">
         <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center mb-4">
-          <Mail className="h-6 w-6 text-muted-foreground" />
+          <Envelope className="h-6 w-6 text-muted-foreground" />
         </div>
         <h3 className="text-lg font-medium">No messages</h3>
         <p className="text-muted-foreground text-sm mt-1">
@@ -286,7 +286,7 @@ export function MessageList({
                     >
                       {message.isRead ? (
                         <>
-                          <Mail className="mr-2 h-4 w-4" /> Mark as unread
+                          <Envelope className="mr-2 h-4 w-4" /> Mark as unread
                         </>
                       ) : (
                         <>
@@ -302,7 +302,7 @@ export function MessageList({
                       }}
                       className="text-destructive"
                     >
-                      <Trash2 className="mr-2 h-4 w-4" /> Delete
+                      <Trash className="mr-2 h-4 w-4" /> Delete
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

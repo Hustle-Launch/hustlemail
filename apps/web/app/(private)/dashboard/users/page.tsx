@@ -10,14 +10,14 @@ import {
   Users,
   Plus,
   MoreVertical,
-  Mail,
+  Envelope,
   Shield,
-  Trash2,
+  Trash,
   Settings,
-  Search,
+  MagnifyingGlass,
   Crown,
   User,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -131,12 +131,12 @@ export default function UsersPage() {
         </Button>
       </div>
 
-      {/* Search */}
+      {/* MagnifyingGlass */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
+        <MagnifyingGlass className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-500" />
         <Input
           type="text"
-          placeholder="Search users..."
+          placeholder="MagnifyingGlass users..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="bg-zinc-900 pl-10"
@@ -206,8 +206,8 @@ export default function UsersPage() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
                       <DropdownMenuItem>
-                        <Mail className="mr-2 h-4 w-4" />
-                        Send Email
+                        <Envelope className="mr-2 h-4 w-4" />
+                        PaperPlaneTilt Email
                       </DropdownMenuItem>
                       <DropdownMenuItem>
                         <Settings className="mr-2 h-4 w-4" />
@@ -215,7 +215,7 @@ export default function UsersPage() {
                       </DropdownMenuItem>
                       {user.role !== "owner" && (
                         <DropdownMenuItem className="text-red-400">
-                          <Trash2 className="mr-2 h-4 w-4" />
+                          <Trash className="mr-2 h-4 w-4" />
                           Remove
                         </DropdownMenuItem>
                       )}

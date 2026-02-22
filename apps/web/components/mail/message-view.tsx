@@ -12,7 +12,7 @@ import {
   ArrowLeft,
   Star,
   Archive,
-  Trash2,
+  Trash,
   Reply,
   ReplyAll,
   Forward,
@@ -22,7 +22,7 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
-} from "lucide-react";
+} from "@phosphor-icons/react";
 import { cn, formatDate, formatFileSize, getInitials } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -292,7 +292,7 @@ export function MessageView({
         <Tooltip>
           <TooltipTrigger asChild>
             <Button variant="ghost" size="icon" onClick={onDelete}>
-              <Trash2 className="h-4 w-4" />
+              <Trash className="h-4 w-4" />
             </Button>
           </TooltipTrigger>
           <TooltipContent>Delete (#)</TooltipContent>
