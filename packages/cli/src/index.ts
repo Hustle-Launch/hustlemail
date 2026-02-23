@@ -9,6 +9,8 @@ import * as p from "@clack/prompts";
 import chalk from "chalk";
 import { writeFileSync, existsSync } from "fs";
 import { join } from "path";
+import { promises as dns } from "dns";
+import * as net from "net";
 import { generateExampleConfig, parseMailConfig } from "@codemail/config";
 
 /** CLI program instance. */
@@ -218,6 +220,85 @@ ${chalk.dim("Run `codemail verify` after adding these records.")}
   });
 
 /**
+ * Test command - runs end-to-end setup checks for a domain.
+ */
+program
+  .command("test <domain>")
+  .description("Run DNS + SMTP reachability checks for a domain")
+  .action(async (domain: string) => {
+    p.intro(chalk.bgHex("#FF6B35").black(" CodeMail Test "));
+
+    const failures: string[] = [];
+    const pass = (msg: string) => console.log(`${chalk.green("✓")} ${msg}`);
+    const fail = (msg: string) => {
+      failures.push(msg);
+      console.log(`${chalk.red("✗")} ${msg}`);
+    };
+
+    // MX
+    try {
+      const mx = await dns.resolveMx(domain);
+      if (mx.length === 0) fail(`MX record missing for ${domain} (add MX: mail.${domain} priority 10)`);
+      else {
+        const top = mx.sort((a, b) => a.priority - b.priority)[0];
+        pass(`MX record found: ${top.exchange} (priority ${top.priority})`);
+      }
+    } catch {
+      fail(`MX lookup failed for ${domain} (add MX: mail.${domain} priority 10)`);
+    }
+
+    // SPF
+    try {
+      const txt = await dns.resolveTxt(domain);
+      const rows = txt.map((r) => r.join(""));
+      const spf = rows.find((r) => r.toLowerCase().startsWith("v=spf1"));
+      if (!spf) fail(`SPF missing (add TXT @: v=spf1 include:_spf.resend.com ~all)`);
+      else pass(`SPF record found`);
+    } catch {
+      fail(`SPF lookup failed (add TXT @: v=spf1 include:_spf.resend.com ~all)`);
+    }
+
+    // DKIM (selector: codemail)
+    const dkimHost = `codemail._domainkey.${domain}`;
+    try {
+      const txt = await dns.resolveTxt(dkimHost);
+      const rows = txt.map((r) => r.join(""));
+      const dkim = rows.find((r) => /v=DKIM1/i.test(r));
+      if (!dkim) fail(`DKIM missing at ${dkimHost} (publish TXT with v=DKIM1; k=rsa; p=...)`);
+      else pass(`DKIM key found at ${dkimHost}`);
+    } catch {
+      fail(`DKIM lookup failed at ${dkimHost} (publish TXT with v=DKIM1; k=rsa; p=...)`);
+    }
+
+    // DMARC
+    const dmarcHost = `_dmarc.${domain}`;
+    try {
+      const txt = await dns.resolveTxt(dmarcHost);
+      const rows = txt.map((r) => r.join(""));
+      const dmarc = rows.find((r) => /v=DMARC1/i.test(r));
+      if (!dmarc) fail(`DMARC missing (add TXT ${dmarcHost}: v=DMARC1; p=none; rua=mailto:dmarc@${domain})`);
+      else pass(`DMARC policy found`);
+    } catch {
+      fail(`DMARC lookup failed (add TXT ${dmarcHost}: v=DMARC1; p=none; rua=mailto:dmarc@${domain})`);
+    }
+
+    // SMTP reachability (port 25)
+    const smtpHost = `mail.${domain}`;
+    const open = await checkTcpPort(smtpHost, 25, 5000);
+    if (open) pass(`SMTP reachable on ${smtpHost}:25`);
+    else fail(`SMTP not reachable on ${smtpHost}:25 (check DNS A/AAAA, firewall, ISP/Fly port 25)`);
+
+    if (failures.length === 0) {
+      p.outro(`${chalk.green("✓ All checks passed")} for ${domain}`);
+      process.exit(0);
+    }
+
+    p.note(failures.map((f) => `- ${f}`).join("\n"), "Fixes needed");
+    p.outro(chalk.red(`Test failed (${failures.length} checks)`));
+    process.exit(1);
+  });
+
+/**
  * Logs command - streams real-time email logs.
  */
 program
@@ -278,6 +359,29 @@ users
     const name = options.name || email.split("@")[0];
     console.log(chalk.green(`✓ Added user: ${name} <${email}>`));
   });
+
+/**
+ * TCP connectivity check helper.
+ */
+function checkTcpPort(host: string, port: number, timeoutMs: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const socket = new net.Socket();
+    let done = false;
+
+    const finish = (ok: boolean) => {
+      if (done) return;
+      done = true;
+      socket.destroy();
+      resolve(ok);
+    };
+
+    socket.setTimeout(timeoutMs);
+    socket.once("connect", () => finish(true));
+    socket.once("timeout", () => finish(false));
+    socket.once("error", () => finish(false));
+    socket.connect(port, host);
+  });
+}
 
 /**
  * Sleeps for the specified duration.
