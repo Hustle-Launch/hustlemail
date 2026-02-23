@@ -866,7 +866,7 @@ export const mail = {
                 "Managed SMTP/IMAP",
                 "Managed spam AI",
                 "Managed Resend (outbound)",
-                "Reputation warming",
+                "Shared Resend IP pool †",
                 "Email support",
               ]}
               highlighted
@@ -883,7 +883,7 @@ export const mail = {
               features={[
                 "Everything in Simple",
                 "Dedicated SMTP/IMAP",
-                "Dedicated IP warming",
+                "Dedicated IP warming † (roadmap)",
                 "1TB file bandwidth/mo",
                 "Migration assistance",
                 "DNS config assistance",
@@ -915,12 +915,25 @@ export const mail = {
             />
           </div>
 
+          {/* Outbound infrastructure disclaimer — resolves issue #31 */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-8 max-w-3xl mx-auto"
+          >
+            <p className="text-center text-xs text-zinc-500 leading-relaxed px-4">
+              † <strong className="text-zinc-400">Outbound delivery note:</strong> Simple tier outbound is currently routed through Resend&apos;s shared IP infrastructure. Resend is a transactional email API — shared pools mean your deliverability can be affected by other senders on the same IPs. No inbox-placement guarantee is made for the Simple tier.
+              {" "}Managed tier dedicated IP warming (Postfix/Haraka on isolated Fly.io machines with per-domain PTR records) is on the roadmap and not yet live. We will update this page when it ships. If guaranteed deliverability is critical today, contact us before signing up.
+            </p>
+          </motion.div>
+
           {/* BYO Keys Explainer */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
-            className="mt-16 max-w-3xl mx-auto"
+            className="mt-10 max-w-3xl mx-auto"
           >
             <div className="rounded-2xl border border-white/10 bg-white/[0.02] p-8">
               <div className="flex items-center gap-3 mb-4">
