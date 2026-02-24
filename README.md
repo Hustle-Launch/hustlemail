@@ -64,8 +64,11 @@ git add mail.config.ts
 git commit -m "Add email config"
 git push
 
-# Done. Email works.
+# CI validates config on push/PR
+bun run config:validate
 ```
+
+Pushes that change `mail.config.ts` now run the **Mail Config Sync** GitHub Action to validate schema and publish pass/fail commit status.
 
 ## Features
 

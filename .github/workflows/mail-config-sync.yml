@@ -1,0 +1,38 @@
+name: Mail Config Sync
+
+on:
+  push:
+    paths:
+      - "mail.config.ts"
+      - "packages/config/**"
+      - "scripts/validate-mail-config.ts"
+  pull_request:
+    paths:
+      - "mail.config.ts"
+      - "packages/config/**"
+      - "scripts/validate-mail-config.ts"
+
+jobs:
+  validate-mail-config:
+    name: Validate mail.config.ts
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.2.0
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Validate config
+        run: bun run scripts/validate-mail-config.ts
+
+      - name: Config sync status
+        if: success()
+        run: |
+          echo "Config validation passed."
+          echo "Next step: apply transactional Convex sync in deploy service."
