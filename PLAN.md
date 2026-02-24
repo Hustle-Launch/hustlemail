@@ -16,7 +16,7 @@ The MVP proves the core thesis: **email as code-configured infrastructure**.
 - ✅ DNS record generation
 
 ### What's NOT in MVP
-- ❌ IMAP proxy (clients can use web mail for now)
+- ❌ IMAP proxy (MVP is web-mail-first; Apple Mail/Outlook/Thunderbird support lands in Phase 2)
 - ❌ CalDAV/CardDAV (calendar/contacts)
 - ❌ Self-hosted deployment docs
 - ❌ Multi-domain in single config

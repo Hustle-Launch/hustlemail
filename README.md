@@ -6,7 +6,7 @@
 npx codemail setup mycompany.com
 # → mail.config.ts created
 # → DNS records shown
-# → founder@mycompany.com works
+# → founder@mycompany.com works in CodeMail Web
 ```
 
 ## The Pitch
@@ -69,11 +69,13 @@ git push
 
 ## Features
 
-### 📧 Full Email Stack
+### 📧 MVP Email Stack (Current)
 - SMTP ingress (receive mail)
-- IMAP access (use any email client)
 - Web mail client (included)
 - Outbound sending via Resend
+
+### 🚧 Planned (Phase 2)
+- IMAP proxy (Apple Mail, Outlook, Thunderbird, etc.)
 
 ### ⚡ Real-Time
 Built on Convex for instant sync:
@@ -99,15 +101,16 @@ Each domain runs on isolated infrastructure:
 ## How It Works
 
 ```
-mail.config.ts → Convex Backend → SMTP/IMAP/Web
+mail.config.ts → Convex Backend → SMTP/Web
 ```
 
 1. You write `mail.config.ts` in your repo
 2. Push to GitHub triggers deploy
 3. Convex stores messages with real-time sync
 4. SMTP ingress accepts incoming mail
-5. IMAP proxy lets you use any email client
-6. Web mail gives you a Gmail-like interface
+5. Web mail gives you a Gmail-like interface
+
+> Note: IMAP client support is planned for Phase 2. Today, mailbox access is through CodeMail Web.
 
 ## Web Mail
 
