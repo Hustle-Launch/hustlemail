@@ -70,6 +70,11 @@ bun run config:validate
 
 Pushes that change `mail.config.ts` now run the **Mail Config Sync** GitHub Action to validate schema and publish pass/fail commit status.
 
+## Live Demo
+
+- Public read-only demo inbox: `/demo` (host as `demo.codemail.dev` in production)
+- Includes seeded realistic threads + visible DNS records for setup walkthroughs
+
 ## Features
 
 ### 📧 MVP Email Stack (Current)
