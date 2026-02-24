@@ -92,14 +92,30 @@ Each domain runs on isolated infrastructure:
 - Breach containment by design
 - Full audit trail
 
-### 💰 Fair Pricing
+### 💰 Why $8/domain Exists
+
+You're not paying for mailbox count. You're paying for a different product category:
+- **Real-time team inboxes** (Convex subscriptions, not periodic polling)
+- **Config-as-code** (`mail.config.ts` in git with review/rollback history)
+- **Per-domain isolation** (domain-scoped infra and blast-radius containment)
+- **Programmatic routing** (TypeScript rules, not checkbox-only admin UI)
 
 | Tier | Price | What You Get |
 |------|-------|--------------|
 | **Free** | $0/mo | BYO API keys (Resend, Convex, OpenRouter) |
-| **Simple** | $8/mo/domain | Managed infrastructure, unlimited mailboxes |
-| **Managed** | $80/mo/domain | White glove setup, priority support |
+| **Simple** | $8/mo/domain | Managed infra, unlimited mailboxes, real-time sync, git-based config deploys |
+| **Managed** | $80/mo/domain | White-glove onboarding, DNS/auth setup, migration help, deliverability tuning, priority incident response |
 | **Self-Hosted** | Free (OSS) | Run everything yourself |
+
+### CodeMail vs Low-Cost Mail Hosts
+
+| Capability | Migadu ($1.58/mo equiv) | Fastmail | CodeMail ($8/domain) |
+|---|---|---|---|
+| Config in code (`mail.config.ts`) | ❌ | ❌ | ✅ |
+| Git push -> config deploy pipeline | ❌ | ❌ | ✅ |
+| Real-time shared mailbox presence | ❌ | ❌ | ✅ |
+| Per-domain infra isolation model | Limited/shared | Shared | ✅ |
+| Web + programmable routing in TS | ❌ | ❌ | ✅ |
 
 ## How It Works
 
