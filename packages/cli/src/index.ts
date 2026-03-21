@@ -106,10 +106,11 @@ ${chalk.cyan("CNAME Record (Web Mail)")}
 
 /**
  * Cloudflare DNS helper - creates DNS records via Cloudflare API.
- * Uses Global API Key (X-Auth-Key header only, no email needed).
+ * Uses Global API Key with X-Auth-Email and X-Auth-Key headers.
  */
 async function createCloudflareRecord(
   zoneId: string,
+  email: string,
   globalApiKey: string,
   record: { type: string; name: string; content: string; priority?: number; proxied?: boolean }
 ): Promise<{ success: boolean; error?: string; id?: string }> {
@@ -130,6 +131,7 @@ async function createCloudflareRecord(
   try {
     const response = execSync(
       `curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records" \
+        -H "X-Auth-Email: ${email}" \
         -H "X-Auth-Key: ${globalApiKey}" \
         -H "Content-Type: application/json" \
         --data '${JSON.stringify(data)}'`,
@@ -149,10 +151,11 @@ async function createCloudflareRecord(
 
 /**
  * Get Cloudflare zone ID for a domain.
- * Uses Global API Key (X-Auth-Key header only, no email needed).
+ * Uses Global API Key with X-Auth-Email and X-Auth-Key headers.
  */
 async function getCloudflareZoneId(
   domain: string,
+  email: string,
   globalApiKey: string
 ): Promise<{ success: boolean; zoneId?: string; error?: string }> {
   const { execSync } = require("child_process");
@@ -160,6 +163,7 @@ async function getCloudflareZoneId(
   try {
     const response = execSync(
       `curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=${domain}" \
+        -H "X-Auth-Email: ${email}" \
         -H "X-Auth-Key: ${globalApiKey}" \
         -H "Content-Type: application/json"`,
       { encoding: "utf-8" }
@@ -169,7 +173,7 @@ async function getCloudflareZoneId(
     if (result.success && result.result?.[0]?.id) {
       return { success: true, zoneId: result.result[0].id };
     } else if (result.errors?.[0]?.code === 9103) {
-      return { success: false, error: "Invalid API key" };
+      return { success: false, error: "Invalid email or API key" };
     } else {
       return { success: false, error: result.errors?.[0]?.message || "Zone not found" };
     }
@@ -207,11 +211,22 @@ program
     const s = p.spinner();
     const { execSync } = require("child_process");
 
+    // Detect non-interactive mode early
+    const isNonInteractiveMode = !process.stdin.isTTY || !!process.env.CI;
+
     // Step 1: Check for mail.config.ts
     const configPath = join(process.cwd(), "mail.config.ts");
     let domain = "";
 
     if (!existsSync(configPath)) {
+      // Non-interactive: fail if no config
+      if (isNonInteractiveMode) {
+        console.error(chalk.red("ERROR: mail.config.ts not found and running non-interactively"));
+        console.error("Create mail.config.ts first or run in interactive mode.");
+        process.exit(1);
+      }
+
+      // Interactive: prompt to create
       const createConfig = await p.confirm({
         message: "No mail.config.ts found. Create one now?",
         initialValue: true,
@@ -306,27 +321,48 @@ program
     }
 
     // Cloudflare credentials (only needed if cloudflare selected)
+    let cfEmail = "";
     let cfApiKey = "";
     let cfZoneId = "";
-    let isNonInteractive = false;
 
     if (dnsProvider === "cloudflare") {
-      // Check for Cloudflare Global API Key from environment
+      // Check for Cloudflare credentials from environment
+      cfEmail = process.env.CLOUDFLARE_EMAIL || process.env.CF_EMAIL || "";
       cfApiKey = 
         process.env.CLOUDFLARE_GLOBAL_API_KEY ||
         process.env.CLOUDFLARE_API_KEY ||
         process.env.CF_API_KEY ||
         "";
 
-      if (!cfApiKey) {
-        // Non-interactive mode: fail if key not in env
-        if (!process.stdin.isTTY || process.env.CI) {
-          console.error(chalk.red("ERROR: CLOUDFLARE_GLOBAL_API_KEY not set and running non-interactively"));
-          console.error("Set CLOUDFLARE_GLOBAL_API_KEY environment variable and try again.");
-          process.exit(1);
+      // Non-interactive mode: fail if missing
+      if (isNonInteractiveMode && (!cfEmail || !cfApiKey)) {
+        if (!cfEmail) {
+          console.error(chalk.red("ERROR: CLOUDFLARE_EMAIL not set and running non-interactively"));
         }
-        
-        // Interactive mode: prompt for key
+        if (!cfApiKey) {
+          console.error(chalk.red("ERROR: CLOUDFLARE_GLOBAL_API_KEY not set and running non-interactively"));
+        }
+        console.error("Set both CLOUDFLARE_EMAIL and CLOUDFLARE_GLOBAL_API_KEY environment variables and try again.");
+        process.exit(1);
+      }
+
+      // Interactive mode: prompt for missing values
+      if (!cfEmail) {
+        const emailInput = await p.text({
+          message: "Cloudflare account email:",
+          placeholder: "you@example.com",
+          validate: (v) => v && v.includes("@") ? undefined : "Valid email required",
+        });
+        if (p.isCancel(emailInput)) {
+          p.cancel("Deploy cancelled");
+          process.exit(0);
+        }
+        cfEmail = emailInput as string;
+      } else {
+        console.log(chalk.dim(`  → Using Cloudflare email: ${cfEmail}`));
+      }
+
+      if (!cfApiKey) {
         const keyInput = await p.text({
           message: "Cloudflare Global API Key:",
           placeholder: "xxxxxxxx...",
@@ -339,18 +375,17 @@ program
         cfApiKey = keyInput as string;
       } else {
         console.log(chalk.dim(`  → Using Cloudflare Global API Key from environment`));
-        isNonInteractive = !process.stdin.isTTY || !!process.env.CI;
       }
 
       // Validate and get zone ID
       s.start("Validating Cloudflare credentials");
-      const zoneResult = await getCloudflareZoneId(domain, cfApiKey);
+      const zoneResult = await getCloudflareZoneId(domain, cfEmail, cfApiKey);
       if (!zoneResult.success) {
         s.stop("Cloudflare authentication failed");
         console.error(chalk.red(`  Error: ${zoneResult.error}`));
         
         // Non-interactive mode: fail hard
-        if (isNonInteractive || !process.stdin.isTTY) {
+        if (isNonInteractiveMode) {
           process.exit(1);
         }
         
@@ -565,7 +600,7 @@ program
       let failCount = 0;
 
       for (const record of dnsRecords) {
-        const result = await createCloudflareRecord(cfZoneId, cfApiKey, {
+        const result = await createCloudflareRecord(cfZoneId, cfEmail, cfApiKey, {
           type: record.type,
           name: record.name,
           content: record.content,
@@ -636,7 +671,7 @@ program
     // Add webmail CNAME
     if (dnsProvider === "cloudflare" && cfZoneId) {
       const webmailName = (webmailSubdomain as string).replace(`.${domain}`, "");
-      const result = await createCloudflareRecord(cfZoneId, cfApiKey, {
+      const result = await createCloudflareRecord(cfZoneId, cfEmail, cfApiKey, {
         type: "CNAME",
         name: webmailName,
         content: "hustlemail.app",
