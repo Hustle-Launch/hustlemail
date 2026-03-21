@@ -1,4 +1,4 @@
-import { parseMailConfig } from "@hustlemail/config";
+import { parseMailConfig } from "../packages/config/src/index";
 import { createHash } from "crypto";
 import { pathToFileURL } from "url";
 import { existsSync, readFileSync } from "fs";
@@ -21,7 +21,7 @@ try {
 
   console.log("mail.config.ts valid");
   console.log(`domain=${parsed.domain}`);
-  console.log(`mailboxes=${parsed.mailboxes.length}`);
+  console.log(`boxes=${parsed.boxes.length}`);
   console.log(`config_sha256=${hash}`);
 } catch (error) {
   console.error("mail.config.ts validation failed");
