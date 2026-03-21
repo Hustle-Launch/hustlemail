@@ -534,11 +534,19 @@ program
               console.log(chalk.yellow("  → Your Resend plan limits domains. Options:"));
               console.log(chalk.yellow("    1. Delete an existing domain in Resend dashboard"));
               console.log(chalk.yellow("    2. Upgrade your Resend plan"));
+              console.log(chalk.yellow("    3. Use --skip-resend to set up webmail without adding a new domain"));
               
-              const proceed = await p.confirm({
-                message: "Continue without Resend domain setup?",
-                initialValue: false,
-              });
+              // In non-interactive mode, auto-proceed
+              const isNonInteractive = process.env.CI === "true" || !process.stdin.isTTY;
+              let proceed = isNonInteractive;
+              
+              if (!isNonInteractive) {
+                proceed = await p.confirm({
+                  message: "Continue without Resend domain setup?",
+                  initialValue: false,
+                });
+              }
+              
               if (!proceed || p.isCancel(proceed)) {
                 p.cancel("Deploy cancelled - resolve Resend domain limit first");
                 process.exit(1);
