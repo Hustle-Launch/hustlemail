@@ -325,16 +325,12 @@ program
         process.env.CF_API_KEY ||
         "";
 
-      // If Global API Key is found, also check for email
-      if (cfApiKey && !cfApiKey.startsWith("v1.0-")) {
-        // Looks like Global API Key (not API Token), need email
-        cfEmail = process.env.CLOUDFLARE_EMAIL || process.env.CF_EMAIL || null;
-      }
+      // For Global API Key, get email from environment or use default
+      cfEmail = process.env.CLOUDFLARE_EMAIL || process.env.CF_EMAIL || "michaelmonetized@gmail.com";
 
-      // If we have API Key but no Global API Key, assume it's API Token
       if (!cfApiKey) {
         const keyInput = await p.text({
-          message: "Cloudflare API Key or Token:",
+          message: "Cloudflare Global API Key:",
           placeholder: "xxxxxxxx...",
           validate: (v) => v?.length >= 20 ? undefined : "API key appears too short",
         });
@@ -345,21 +341,6 @@ program
         cfApiKey = keyInput as string;
       } else {
         console.log(chalk.dim(`  → Using Cloudflare API key from environment`));
-      }
-
-      // If it looks like a Global API Key (not a token), ask for email if not found
-      if (cfEmail === null && !cfApiKey.startsWith("v1.0-")) {
-        const emailInput = await p.text({
-          message: "Cloudflare account email:",
-          placeholder: "you@example.com",
-          validate: (v) => v && v.includes("@") ? undefined : "Valid email required",
-        });
-        if (p.isCancel(emailInput)) {
-          p.cancel("Deploy cancelled");
-          process.exit(0);
-        }
-        cfEmail = emailInput as string;
-      } else if (cfEmail) {
         console.log(chalk.dim(`  → Using Cloudflare email: ${cfEmail}`));
       }
 
