@@ -5,7 +5,7 @@
 
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
-import { generateDKIMKeys } from "./lib/dkim";
+import { generateDKIMKeys } from "./lib/dkim_stub";
 
 /**
  * Lists all domains owned by a specific user.

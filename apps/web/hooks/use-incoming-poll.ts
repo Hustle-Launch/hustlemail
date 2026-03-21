@@ -148,17 +148,13 @@ export function useIncomingPoll(domainName: string, enabled = true) {
  * Uses Convex queries for instant updates as messages are stored.
  * @param mailboxId - The mailbox ID to subscribe to.
  * @returns The latest messages for the mailbox.
+ *
+ * TODO: Implement once Convex codegen generates the getMessagesByMailbox query
  */
 export function useRealtimeMessages(mailboxId: string | undefined) {
-  // Use Convex query to subscribe to messages in real-time
-  const messages = useQuery(
-    mailboxId ? api.queries.getMessagesByMailbox : "skip",
-    mailboxId ? { mailboxId } : "skip"
-  );
-
   return {
-    messages: messages || [],
-    isLoading: messages === undefined,
-    error: null,
+    messages: [],
+    isLoading: false,
+    error: mailboxId ? "Query not yet available" : null,
   };
 }

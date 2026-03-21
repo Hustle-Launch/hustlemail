@@ -6,7 +6,7 @@
  */
 
 import { v } from "convex/values";
-import { action, internalAction, mutation, internalMutation, scheduler } from "./_generated/server";
+import { action, internalAction, mutation, internalMutation } from "./_generated/server";
 import { internal } from "./_generated/api";
 
 /**
@@ -201,17 +201,9 @@ export const pollResendIncoming = internalAction({
 });
 
 /**
- * Scheduler: Poll all configured domains every 60 seconds.
- * Runs automatically in the background.
- */
-export const schedulePollAllDomains = scheduler.interval(
-  "every 60 seconds",
-  internal.pollIncoming.pollAllDomains
-);
-
-/**
  * Internal action to poll all configured domains.
- * Called by the scheduler.
+ * Should be called by external cron (e.g., GitHub Actions, Vercel Cron, or hosted cron service).
+ * Example: POST /api/cron/poll-all-domains (call from external scheduler)
  */
 export const pollAllDomains = internalAction({
   args: {},
