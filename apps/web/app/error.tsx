@@ -7,7 +7,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { Warning, ArrowClockwise } from "@phosphor-icons/react";
+import { AlertTriangle, RefreshCw } from "lucide-react";
 
 /**
  * Error boundary component for handling runtime errors.
@@ -31,7 +31,7 @@ export default function Error({
       <div className="text-center">
         <div className="mb-8 flex justify-center">
           <div className="flex h-20 w-20 items-center justify-center rounded-2xl bg-red-500/10">
-            <Warning className="h-10 w-10 text-red-500" />
+            <AlertTriangle className="h-10 w-10 text-red-500" />
           </div>
         </div>
         
@@ -46,7 +46,7 @@ export default function Error({
           onClick={reset}
           className="inline-flex items-center gap-2 rounded-lg bg-indigo-600 px-6 py-3 font-medium text-white transition-colors hover:bg-indigo-500"
         >
-          <ArrowClockwise className="h-4 w-4" />
+          <RefreshCw className="h-4 w-4" />
           Try again
         </button>
         

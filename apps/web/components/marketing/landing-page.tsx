@@ -16,7 +16,7 @@ import {
   Terminal,
   Check,
   ArrowRight,
-  Envelope,
+  Mail,
   Sparkles,
   Building2,
   Rocket,
@@ -26,7 +26,7 @@ import {
   GitBranch,
   Code2,
   Twitter,
-} from "@phosphor-icons/react";
+} from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 
 /**
@@ -212,7 +212,7 @@ const SCALE_STEPS = [
     delay: 200,
   },
   { command: "git push", delay: 120 },
-  { output: "✓ 10 mailboxes, 4 routes, zero config drift", delay: 50 },
+  { output: "✓ 10 boxes, 4 routes, zero config drift", delay: 50 },
   { final: "📈 New hire? Add to routes, push. Done.", delay: 100 },
 ];
 
@@ -495,7 +495,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-500 to-purple-500 flex items-center justify-center">
-              <Envelope className="w-4 h-4 text-white" />
+              <Mail className="w-4 h-4 text-white" />
             </div>
             <span className="text-xl font-bold text-white">hustlemail</span>
           </div>
@@ -950,7 +950,7 @@ export const mail = {
               <div className="grid sm:grid-cols-2 gap-4 text-sm">
                 <div className="flex items-center gap-3">
                   <div className="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center">
-                    <Envelope className="w-4 h-4 text-zinc-400" />
+                    <Mail className="w-4 h-4 text-zinc-400" />
                   </div>
                   <div>
                     <div className="text-white font-medium">Resend</div>
@@ -1091,7 +1091,7 @@ export const mail = {
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-500 to-purple-500 flex items-center justify-center">
-                <Envelope className="w-4 h-4 text-white" />
+                <Mail className="w-4 h-4 text-white" />
               </div>
               <span className="text-xl font-bold text-white">hustlemail</span>
             </div>

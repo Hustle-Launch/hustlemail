@@ -5,7 +5,7 @@
 
 "use client";
 
-import { Trash } from "@phosphor-icons/react";
+import { Trash } from "lucide-react";
 
 export default function TrashPage() {
   return (

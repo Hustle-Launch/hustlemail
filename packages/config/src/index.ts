@@ -36,8 +36,8 @@ export const RouteSchema = z.record(
   z.union([z.string(), z.array(z.string())])
 );
 
-/** Schema for mailbox configuration (simple string or object). */
-export const MailboxSchema = z.union([
+/** Schema for mailbox/box configuration (simple string or object). */
+export const BoxSchema = z.union([
   z.string(),
   z.object({
     name: z.string(),
@@ -47,23 +47,37 @@ export const MailboxSchema = z.union([
   }),
 ]);
 
+/** @deprecated Use BoxSchema instead */
+export const MailboxSchema = BoxSchema;
+
 /** Schema for the complete mail.config.ts file. */
 export const MailConfigSchema = z.object({
   domain: z.string().min(1),
-  mailboxes: z.array(MailboxSchema),
+  // Primary field name is "boxes"
+  boxes: z.array(BoxSchema).optional(),
+  // Keep "mailboxes" for backwards compatibility (deprecated)
+  mailboxes: z.array(BoxSchema).optional(),
   routes: RouteSchema.optional(),
   users: z.array(
     z.object({
       email: z.string().email(),
       name: z.string(),
-      mailboxes: z.array(z.string()).optional(),
+      boxes: z.array(z.string()).optional(),
     })
   ).optional(),
   spam: SpamConfigSchema.optional(),
   attachments: AttachmentConfigSchema.optional(),
   outbound: OutboundConfigSchema.optional(),
   catchAll: z.string().optional(),
-});
+}).refine(
+  (data) => data.boxes || data.mailboxes,
+  { message: "Either 'boxes' or 'mailboxes' (deprecated) must be provided" }
+).transform((data) => ({
+  ...data,
+  // Normalize to always use boxes internally
+  boxes: data.boxes ?? data.mailboxes ?? [],
+  mailboxes: undefined, // Remove deprecated field after normalization
+}));
 
 /** Spam detection configuration type. */
 export type SpamConfig = z.infer<typeof SpamConfigSchema>;
@@ -77,8 +91,11 @@ export type OutboundConfig = z.infer<typeof OutboundConfigSchema>;
 /** Email routing rules type. */
 export type Route = z.infer<typeof RouteSchema>;
 
-/** Mailbox configuration type. */
-export type Mailbox = z.infer<typeof MailboxSchema>;
+/** Box (mailbox) configuration type. */
+export type Box = z.infer<typeof BoxSchema>;
+
+/** @deprecated Use Box instead */
+export type Mailbox = Box;
 
 /** Complete mail configuration type. */
 export type MailConfig = z.infer<typeof MailConfigSchema>;
@@ -146,47 +163,57 @@ export function parseSize(size: string | number): number {
 }
 
 /**
- * Normalizes a mailbox config to a consistent format.
- * @param mailbox - The mailbox config (string or object).
- * @returns Normalized mailbox object with all fields.
+ * Normalizes a box config to a consistent format.
+ * @param box - The box config (string or object).
+ * @returns Normalized box object with all fields.
  */
-export function normalizeMailbox(mailbox: Mailbox): {
+export function normalizeBox(box: Box): {
   name: string;
   displayName?: string;
   type: "personal" | "shared" | "alias";
   forwardTo?: string[];
 } {
-  if (typeof mailbox === "string") {
-    return { name: mailbox, type: "personal" };
+  if (typeof box === "string") {
+    return { name: box, type: "personal" };
   }
   return {
-    name: mailbox.name,
-    displayName: mailbox.displayName,
-    type: mailbox.type || "personal",
-    forwardTo: mailbox.forwardTo,
+    name: box.name,
+    displayName: box.displayName,
+    type: box.type || "personal",
+    forwardTo: box.forwardTo,
   };
 }
 
+/** @deprecated Use normalizeBox instead */
+export const normalizeMailbox = normalizeBox;
+
 /**
- * Gets all mailbox names from a config.
+ * Gets all box names from a config.
  * @param config - The mail configuration.
- * @returns Array of mailbox names.
+ * @returns Array of box names.
  */
-export function getMailboxNames(config: MailConfig): string[] {
-  return config.mailboxes.map((m) =>
+export function getBoxNames(config: MailConfig): string[] {
+  const boxes = config.boxes ?? [];
+  return boxes.map((m) =>
     typeof m === "string" ? m : m.name
   );
 }
 
+/** @deprecated Use getBoxNames instead */
+export const getMailboxNames = getBoxNames;
+
 /**
- * Checks if a mailbox exists in a config.
+ * Checks if a box exists in a config.
  * @param config - The mail configuration.
- * @param name - The mailbox name to check.
- * @returns True if the mailbox exists.
+ * @param name - The box name to check.
+ * @returns True if the box exists.
  */
-export function hasMailbox(config: MailConfig, name: string): boolean {
-  return getMailboxNames(config).includes(name);
+export function hasBox(config: MailConfig, name: string): boolean {
+  return getBoxNames(config).includes(name);
 }
+
+/** @deprecated Use hasBox instead */
+export const hasMailbox = hasBox;
 
 /**
  * Gets route recipients for a mailbox.
@@ -224,8 +251,8 @@ export function generateExampleConfig(domain: string): string {
 export default defineMailConfig({
   domain: "${domain}",
 
-  // Mailboxes to create
-  mailboxes: [
+  // Boxes (mailboxes) to create
+  boxes: [
     "hello",     // hello@${domain}
     "support",   // support@${domain}
     "team",      // team@${domain} (shared)

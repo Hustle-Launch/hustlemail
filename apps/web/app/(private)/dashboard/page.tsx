@@ -17,9 +17,9 @@ import {
   ExternalLink,
   Settings,
   Trash,
-  Envelope,
+  Mail,
   Shield,
-} from "@phosphor-icons/react";
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -156,7 +156,7 @@ export default function DomainsPage() {
                 <DropdownMenuContent align="end" className="w-48">
                   <DropdownMenuItem>
                     <ExternalLink className="mr-2 h-4 w-4" />
-                    Open Web Envelope
+                    Open Web Mail
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Settings className="mr-2 h-4 w-4" />
@@ -174,7 +174,7 @@ export default function DomainsPage() {
             <div className="mt-6 grid grid-cols-4 gap-4">
               <div className="rounded-lg bg-zinc-800/50 p-3">
                 <div className="flex items-center gap-2 text-zinc-400">
-                  <Envelope className="h-4 w-4" />
+                  <Mail className="h-4 w-4" />
                   <span className="text-xs uppercase tracking-wide">
                     Mailboxes
                   </span>
@@ -185,7 +185,7 @@ export default function DomainsPage() {
               </div>
               <div className="rounded-lg bg-zinc-800/50 p-3">
                 <div className="flex items-center gap-2 text-zinc-400">
-                  <Envelope className="h-4 w-4" />
+                  <Mail className="h-4 w-4" />
                   <span className="text-xs uppercase tracking-wide">
                     This Week
                   </span>

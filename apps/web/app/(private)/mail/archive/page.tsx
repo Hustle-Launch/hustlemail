@@ -5,7 +5,7 @@
 
 "use client";
 
-import { Archive } from "@phosphor-icons/react";
+import { Archive } from "lucide-react";
 
 export default function ArchivePage() {
   return (

@@ -22,7 +22,7 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
-} from "@phosphor-icons/react";
+} from "lucide-react";
 import { cn, formatDate, formatFileSize, getInitials } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";

@@ -9,12 +9,12 @@ import {
   Shield,
   Key,
   Lock,
-  Warning,
+  AlertTriangle,
   CheckCircle,
   XCircle,
-  ArrowClockwise,
+  RefreshCw,
   ExternalLink,
-} from "@phosphor-icons/react";
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -80,7 +80,7 @@ function StatusIcon({ status }: { status: string }) {
     return <CheckCircle className="h-5 w-5 text-emerald-400" />;
   }
   if (status === "warning") {
-    return <Warning className="h-5 w-5 text-amber-400" />;
+    return <AlertTriangle className="h-5 w-5 text-amber-400" />;
   }
   return <XCircle className="h-5 w-5 text-red-400" />;
 }
@@ -97,7 +97,7 @@ export default function SecurityPage() {
           </p>
         </div>
         <Button variant="outline">
-          <ArrowClockwise className="mr-2 h-4 w-4" />
+          <RefreshCw className="mr-2 h-4 w-4" />
           Run Security Scan
         </Button>
       </div>
@@ -121,7 +121,7 @@ export default function SecurityPage() {
                 <CheckCircle className="h-4 w-4" />3 checks passed
               </span>
               <span className="flex items-center gap-1 text-sm text-amber-400">
-                <Warning className="h-4 w-4" />1 warning
+                <AlertTriangle className="h-4 w-4" />1 warning
               </span>
             </div>
           </div>
@@ -243,7 +243,7 @@ export default function SecurityPage() {
           </div>
 
           <Button variant="outline" size="sm">
-            <ArrowClockwise className="mr-2 h-4 w-4" />
+            <RefreshCw className="mr-2 h-4 w-4" />
             Rotate Key
           </Button>
         </div>

@@ -1,5 +1,5 @@
 /**
- * Envelope sidebar component with navigation, labels, and user menu.
+ * Mail sidebar component with navigation, labels, and user menu.
  * Provides primary navigation for the mail interface.
  * @module components/mail/sidebar
  */
@@ -10,20 +10,20 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Inbox,
-  PaperPlaneTilt,
+  Send,
   Star,
   Archive,
   Trash,
   Tag,
   Settings,
   PenSquare,
-  MagnifyingGlass,
+  Search,
   Moon,
   Sun,
   LogOut,
   ChevronDown,
   User,
-} from "@phosphor-icons/react";
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 
@@ -53,9 +53,14 @@ import {
 } from "@/components/ui/tooltip";
 
 /** Primary navigation items with icons and optional badge counts. */
-const navigation = [
-  { name: "Inbox", href: "/mail/inbox", icon: Inbox },
-  { name: "Sent", href: "/mail/sent", icon: PaperPlaneTilt },
+const navigation: {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  badge?: number;
+}[] = [
+  { name: "Inbox", href: "/mail/inbox", icon: Inbox, badge: 12 },
+  { name: "Sent", href: "/mail/sent", icon: Send },
   { name: "Starred", href: "/mail/starred", icon: Star },
   { name: "Archive", href: "/mail/archive", icon: Archive },
   { name: "Trash", href: "/mail/trash", icon: Trash },
@@ -122,8 +127,8 @@ export function Sidebar() {
         </Link>
         <Link href="/mail/search">
           <Button variant="outline" className="w-full justify-start gap-2" size="sm">
-            <MagnifyingGlass className="h-4 w-4" />
-            MagnifyingGlass
+            <Search className="h-4 w-4" />
+            Search
             <kbd className="ml-auto kbd">/</kbd>
           </Button>
         </Link>

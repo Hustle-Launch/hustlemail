@@ -9,17 +9,17 @@
 import { useRouter } from "next/navigation";
 import {
   Inbox,
-  PaperPlaneTilt,
+  Send,
   Star,
   Archive,
   Trash,
   PenSquare,
-  MagnifyingGlass,
+  Search,
   Settings,
   Moon,
   Sun,
   LogOut,
-} from "@phosphor-icons/react";
+} from "lucide-react";
 import { useTheme } from "next-themes";
 import {
   CommandDialog,
@@ -66,8 +66,8 @@ export function CommandMenu() {
             <CommandShortcut>C</CommandShortcut>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push("/mail/search"))}>
-            <MagnifyingGlass className="mr-2 h-4 w-4" />
-            MagnifyingGlass emails
+            <Search className="mr-2 h-4 w-4" />
+            Search emails
             <CommandShortcut>/</CommandShortcut>
           </CommandItem>
         </CommandGroup>
@@ -80,7 +80,7 @@ export function CommandMenu() {
             Go to Inbox
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push("/mail/sent"))}>
-            <PaperPlaneTilt className="mr-2 h-4 w-4" />
+            <Send className="mr-2 h-4 w-4" />
             Go to Sent
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push("/mail/starred"))}>

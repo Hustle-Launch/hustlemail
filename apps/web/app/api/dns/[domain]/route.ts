@@ -7,6 +7,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import dns from "dns/promises";
 
+/** MX record structure from dns.resolveMx */
+interface MxRecord {
+  exchange: string;
+  priority: number;
+}
+
 /** Result of checking a single DNS record. */
 interface DnsRecordCheck {
   type: string;
@@ -101,13 +107,13 @@ export async function GET(
   }
 
   // Check MX
-  const mx = await resolveDns(() => dns.resolveMx(domain), [] as dns.MxRecord[]);
+  const mx = await resolveDns(() => dns.resolveMx(domain), [] as MxRecord[]);
   const hasMx = mx.data.some((r) => r.exchange.includes("mail." + domain));
   checks.push({
     type: "MX",
     host: domain,
     expectedValue: records.mx.value,
-    actualValue: mx.error?.message ?? mx.data.map((r) => `${r.priority} ${r.exchange}`).join(", ") || "Not set",
+    actualValue: mx.error?.message ?? (mx.data.map((r) => `${r.priority} ${r.exchange}`).join(", ") || "Not set"),
     status: mx.error ? "fail" : hasMx ? "pass" : "fail",
   });
 

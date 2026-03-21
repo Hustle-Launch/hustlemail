@@ -38,7 +38,8 @@ import { defineMailConfig } from "@hustlemail/config";
 export default defineMailConfig({
   domain: "mycompany.com",
   
-  mailboxes: [
+  // "boxes" replaces "mailboxes" (shorter, cleaner)
+  boxes: [
     "hello",      // hello@mycompany.com
     "support",    // support@mycompany.com
     "founders",   // shared inbox
@@ -53,7 +54,7 @@ export default defineMailConfig({
   
   spam: {
     provider: "openrouter", // AI-powered spam detection
-    aggressiveness: "medium",
+    threshold: 0.7,
   },
 });
 ```

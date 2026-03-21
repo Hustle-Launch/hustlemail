@@ -14,7 +14,7 @@ import Link from "@tiptap/extension-link";
 import Placeholder from "@tiptap/extension-placeholder";
 import {
   X,
-  PaperPlaneTilt,
+  Send,
   Paperclip,
   Bold,
   Italic,
@@ -23,7 +23,7 @@ import {
   LinkIcon,
   Trash,
   ChevronDown,
-} from "@phosphor-icons/react";
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -373,8 +373,8 @@ export function ComposeEditor({
       {/* Footer */}
       <div className="flex items-center gap-2 px-4 py-3 border-t shrink-0">
         <Button onClick={handleSend} disabled={!to.trim() || isSending}>
-          <PaperPlaneTilt className="mr-2 h-4 w-4" />
-          {isSending ? "Sending..." : "PaperPlaneTilt"}
+          <Send className="mr-2 h-4 w-4" />
+          {isSending ? "Sending..." : "Send"}
         </Button>
         <Button variant="outline" onClick={handleDiscard}>
           <Trash className="mr-2 h-4 w-4" />

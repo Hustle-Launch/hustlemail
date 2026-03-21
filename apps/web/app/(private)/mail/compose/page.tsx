@@ -8,7 +8,7 @@
 import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ComposeEditor } from "@/components/mail/compose-editor";
-import { CircleNotch } from "@phosphor-icons/react";
+import { Loader2 } from "lucide-react";
 
 function ComposeContent() {
   const searchParams = useSearchParams();
@@ -53,7 +53,7 @@ export default function ComposePage() {
     <Suspense
       fallback={
         <div className="flex h-full items-center justify-center">
-          <CircleNotch className="h-8 w-8 animate-spin text-zinc-500" />
+          <Loader2 className="h-8 w-8 animate-spin text-zinc-500" />
         </div>
       }
     >

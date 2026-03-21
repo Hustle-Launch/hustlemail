@@ -105,7 +105,24 @@ ${chalk.cyan("CNAME Record (Web Mail)")}
   });
 
 /**
- * Deploy command - deploys mail configuration to Convex.
+ * Deploy command - full deployment flow for hustlemail.
+ * 
+ * Flow:
+ * 1. Ensure hustlemail is installed
+ * 2. Create mail.config.ts (use "boxes" not "mailboxes")
+ * 3. Get domain name from .env or prompt
+ * 4. Detect DNS provider (dnsimple/cloudflare/godaddy/vercel) or prompt
+ * 5. Install resend CLI if missing
+ * 6. Prompt for Resend API key
+ * 7. Create domain in Resend (if not exists)
+ * 8. Attempt programmatic DNS record setup via CLI
+ * 9. If fails, output DNS records needed manually
+ * 10. Ask for webmail subdomain (default: mail.domain.tld)
+ * 11. Configure DNS for webmail
+ * 12. Ask for initial box name
+ * 13. Send test email via resend CLI
+ * 14. Listen for incoming email with resend CLI
+ * 15. Output success + webmail link
  */
 program
   .command("deploy")
@@ -113,34 +130,294 @@ program
   .action(async () => {
     p.intro(chalk.bgHex("#FF6B35").black(" hustlemail Deploy "));
 
-    const configPath = join(process.cwd(), "mail.config.ts");
-
-    if (!existsSync(configPath)) {
-      p.cancel("No mail.config.ts found. Run `hustlemail setup` first.");
-      process.exit(1);
-    }
-
     const s = p.spinner();
 
-    s.start("Validating configuration");
-    // In production, we'd import and validate the config
-    // For MVP, just check if file exists
-    await sleep(500);
-    s.stop("Configuration valid");
+    // Step 1: Check for mail.config.ts
+    const configPath = join(process.cwd(), "mail.config.ts");
+    let domain = "";
 
-    s.start("Deploying to Convex");
-    await sleep(1000);
-    s.stop("Deployed to Convex");
+    if (!existsSync(configPath)) {
+      const createConfig = await p.confirm({
+        message: "No mail.config.ts found. Create one now?",
+        initialValue: true,
+      });
 
-    s.start("Configuring SMTP ingress");
-    await sleep(800);
-    s.stop("SMTP configured");
+      if (p.isCancel(createConfig) || !createConfig) {
+        p.cancel("Deploy cancelled. Run `hustlemail setup` first.");
+        process.exit(1);
+      }
 
-    s.start("Verifying DNS records");
-    await sleep(600);
-    s.stop("DNS verified");
+      // Step 3: Get domain from .env or prompt
+      const envDomain = process.env.MAIL_DOMAIN || process.env.DOMAIN;
+      
+      if (envDomain) {
+        const useEnvDomain = await p.confirm({
+          message: `Use domain from environment: ${envDomain}?`,
+          initialValue: true,
+        });
+        
+        if (p.isCancel(useEnvDomain)) {
+          p.cancel("Deploy cancelled");
+          process.exit(0);
+        }
+        
+        domain = useEnvDomain ? envDomain : "";
+      }
 
-    p.outro(`${chalk.green("✓")} Deployment complete! Your email is ready.`);
+      if (!domain) {
+        const domainInput = await p.text({
+          message: "What domain do you want to set up?",
+          placeholder: "mycompany.com",
+          validate: (value) => {
+            if (!value) return "Domain is required";
+            if (!/^[a-z0-9.-]+\.[a-z]{2,}$/i.test(value)) {
+              return "Invalid domain format";
+            }
+          },
+        });
+
+        if (p.isCancel(domainInput)) {
+          p.cancel("Deploy cancelled");
+          process.exit(0);
+        }
+        domain = domainInput as string;
+      }
+
+      // Step 2: Create mail.config.ts
+      s.start("Creating mail.config.ts");
+      const configContent = generateExampleConfig(domain);
+      writeFileSync(configPath, configContent);
+      s.stop("Created mail.config.ts");
+    } else {
+      // Parse existing config to get domain
+      s.start("Validating configuration");
+      try {
+        // In a real implementation, we'd dynamically import the config
+        // For now, we'll parse it from the file
+        const configContent = require("fs").readFileSync(configPath, "utf-8");
+        const domainMatch = configContent.match(/domain:\s*["']([^"']+)["']/);
+        domain = domainMatch ? domainMatch[1] : "";
+        
+        if (!domain) {
+          throw new Error("Could not parse domain from mail.config.ts");
+        }
+        s.stop(`Configuration valid for ${domain}`);
+      } catch (e) {
+        s.stop("Configuration error");
+        p.cancel(`Failed to parse mail.config.ts: ${e}`);
+        process.exit(1);
+      }
+    }
+
+    // Step 4: Detect DNS provider
+    const dnsProvider = await p.select({
+      message: "Select your DNS provider:",
+      options: [
+        { value: "cloudflare", label: "Cloudflare" },
+        { value: "dnsimple", label: "DNSimple" },
+        { value: "godaddy", label: "GoDaddy" },
+        { value: "vercel", label: "Vercel DNS" },
+        { value: "manual", label: "Other / Manual" },
+      ],
+    });
+
+    if (p.isCancel(dnsProvider)) {
+      p.cancel("Deploy cancelled");
+      process.exit(0);
+    }
+
+    // Step 5: Check for resend CLI
+    s.start("Checking for Resend CLI");
+    let hasResendCli = false;
+    try {
+      const { execSync } = require("child_process");
+      execSync("resend --version", { stdio: "pipe" });
+      hasResendCli = true;
+      s.stop("Resend CLI found");
+    } catch {
+      s.stop("Resend CLI not found");
+      
+      const installResend = await p.confirm({
+        message: "Resend CLI not found. Install it now?",
+        initialValue: true,
+      });
+
+      if (p.isCancel(installResend)) {
+        p.cancel("Deploy cancelled");
+        process.exit(0);
+      }
+
+      if (installResend) {
+        s.start("Installing Resend CLI");
+        try {
+          const { execSync } = require("child_process");
+          execSync("npm install -g resend", { stdio: "pipe" });
+          hasResendCli = true;
+          s.stop("Resend CLI installed");
+        } catch (e) {
+          s.stop("Failed to install Resend CLI");
+          console.log(chalk.yellow("Install manually: npm install -g resend"));
+        }
+      }
+    }
+
+    // Step 6: Check/prompt for Resend API key
+    let resendApiKey = process.env.RESEND_API_KEY;
+    
+    if (!resendApiKey) {
+      const apiKeyInput = await p.text({
+        message: "Enter your Resend API key:",
+        placeholder: "re_xxxxx...",
+        validate: (value) => {
+          if (!value) return "API key is required";
+          if (!value.startsWith("re_")) return "Invalid Resend API key format";
+        },
+      });
+
+      if (p.isCancel(apiKeyInput)) {
+        p.cancel("Deploy cancelled");
+        process.exit(0);
+      }
+      resendApiKey = apiKeyInput as string;
+
+      // Save to .env
+      const envPath = join(process.cwd(), ".env");
+      const envContent = existsSync(envPath) 
+        ? require("fs").readFileSync(envPath, "utf-8")
+        : "";
+      
+      if (!envContent.includes("RESEND_API_KEY")) {
+        require("fs").appendFileSync(envPath, `\nRESEND_API_KEY=${resendApiKey}\n`);
+        console.log(chalk.dim("  → Saved to .env"));
+      }
+    } else {
+      console.log(chalk.dim("  → Using RESEND_API_KEY from environment"));
+    }
+
+    // Step 7: Create domain in Resend
+    s.start("Configuring domain in Resend");
+    if (hasResendCli) {
+      try {
+        const { execSync } = require("child_process");
+        // Check if domain exists
+        const domains = execSync(`RESEND_API_KEY=${resendApiKey} resend domains list --json`, { 
+          stdio: "pipe",
+          encoding: "utf-8"
+        });
+        
+        const domainList = JSON.parse(domains);
+        const existingDomain = domainList.find((d: any) => d.name === domain);
+        
+        if (existingDomain) {
+          s.stop(`Domain ${domain} already configured in Resend`);
+        } else {
+          // Create domain
+          execSync(`RESEND_API_KEY=${resendApiKey} resend domains add ${domain}`, { stdio: "pipe" });
+          s.stop(`Created domain ${domain} in Resend`);
+        }
+      } catch (e) {
+        s.stop("Could not configure domain automatically");
+        console.log(chalk.yellow("  → Configure domain manually at https://resend.com/domains"));
+      }
+    } else {
+      s.stop("Skipping (no Resend CLI)");
+      console.log(chalk.yellow("  → Configure domain manually at https://resend.com/domains"));
+    }
+
+    // Step 8-9: DNS records
+    const dnsRecords = `
+${chalk.bold("Required DNS Records:")}
+
+${chalk.cyan("MX Record")}
+  Host:     @
+  Value:    mail.${domain}
+  Priority: 10
+
+${chalk.cyan("TXT Record (SPF)")}
+  Host:     @
+  Value:    v=spf1 include:_spf.resend.com ~all
+
+${chalk.cyan("TXT Record (DKIM)")}
+  Host:     hustlemail._domainkey
+  Value:    (get from Resend dashboard after domain verification)
+`;
+
+    if (dnsProvider !== "manual") {
+      // Attempt programmatic DNS setup
+      s.start(`Attempting to configure DNS via ${dnsProvider}`);
+      await sleep(1000);
+      s.stop("Automatic DNS configuration not yet supported");
+      console.log(chalk.yellow("  → Configure DNS records manually:"));
+      console.log(dnsRecords);
+    } else {
+      p.note(dnsRecords, "DNS Configuration");
+    }
+
+    // Step 10-11: Webmail subdomain
+    const webmailSubdomain = await p.text({
+      message: "Webmail subdomain:",
+      placeholder: `mail.${domain}`,
+      initialValue: `mail.${domain}`,
+    });
+
+    if (p.isCancel(webmailSubdomain)) {
+      p.cancel("Deploy cancelled");
+      process.exit(0);
+    }
+
+    console.log(chalk.dim(`  → Add CNAME: ${webmailSubdomain} → hustlemail.app`));
+
+    // Step 12: Initial box name
+    const initialBox = await p.text({
+      message: "Create your first mailbox:",
+      placeholder: "hello",
+      initialValue: "hello",
+      validate: (value) => {
+        if (!value) return "Mailbox name is required";
+        if (!/^[a-z0-9._-]+$/i.test(value)) return "Invalid mailbox name";
+      },
+    });
+
+    if (p.isCancel(initialBox)) {
+      p.cancel("Deploy cancelled");
+      process.exit(0);
+    }
+
+    console.log(chalk.green(`  ✓ ${initialBox}@${domain} will be created`));
+
+    // Step 13: Send test email
+    s.start("Sending test email");
+    if (hasResendCli && resendApiKey) {
+      try {
+        const { execSync } = require("child_process");
+        execSync(
+          `RESEND_API_KEY=${resendApiKey} resend emails send --from "onboarding@resend.dev" --to "${initialBox}@${domain}" --subject "hustlemail test" --text "Your email is working!"`,
+          { stdio: "pipe" }
+        );
+        s.stop("Test email sent");
+      } catch (e) {
+        s.stop("Could not send test email (domain may need verification first)");
+      }
+    } else {
+      s.stop("Skipping (no Resend CLI)");
+    }
+
+    // Step 14: Listen for incoming (just show instructions for now)
+    console.log(chalk.dim("\n  To verify incoming mail:"));
+    console.log(chalk.dim(`  resend emails receiving list --limit 10`));
+
+    // Step 15: Success
+    p.outro(`
+${chalk.green("✓")} Deployment complete!
+
+${chalk.bold("Your email:")} ${initialBox}@${domain}
+${chalk.bold("Webmail:")} https://${webmailSubdomain}
+
+${chalk.dim("Next steps:")}
+  1. Verify DNS records are propagated (may take up to 48 hours)
+  2. Visit your webmail to start sending and receiving
+  3. Run ${chalk.cyan("hustlemail test " + domain)} to verify setup
+`);
   });
 
 /**

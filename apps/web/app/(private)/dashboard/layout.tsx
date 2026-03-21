@@ -10,19 +10,19 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Globe,
-  Envelope,
+  Mail,
   Users,
   Settings,
   BarChart3,
   Shield,
   Plus,
-} from "@phosphor-icons/react";
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /** Dashboard navigation items with icons. */
 const navigation = [
   { name: "Domains", href: "/dashboard", icon: Globe },
-  { name: "Mailboxes", href: "/dashboard/mailboxes", icon: Envelope },
+  { name: "Mailboxes", href: "/dashboard/mailboxes", icon: Mail },
   { name: "Users", href: "/dashboard/users", icon: Users },
   { name: "Analytics", href: "/dashboard/analytics", icon: BarChart3 },
   { name: "Security", href: "/dashboard/security", icon: Shield },
@@ -48,7 +48,7 @@ export default function DashboardLayout({
         <div className="mx-auto flex h-14 max-w-7xl items-center justify-between px-4">
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2">
-              <Envelope className="h-6 w-6 text-indigo-500" />
+              <Mail className="h-6 w-6 text-indigo-500" />
               <span className="font-semibold text-white">hustlemail</span>
             </Link>
             <span className="text-sm text-zinc-500">Dashboard</span>
