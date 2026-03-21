@@ -509,7 +509,7 @@ program
           // Create domain using correct syntax: resend domains create --name
           try {
             const createResult = execSync(
-              `RESEND_API_KEY=${resendApiKey} resend domains create --name ${domain} --region us-east-1 --json`,
+              `RESEND_API_KEY=${resendApiKey} resend domains create --name ${domain} --region us-east-1 --receiving --json`,
               { stdio: "pipe", encoding: "utf-8" }
             );
             const created = JSON.parse(createResult);
