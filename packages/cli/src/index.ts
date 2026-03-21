@@ -282,26 +282,33 @@ program
       }
     }
 
-    // Step 4: Detect DNS provider
-    const dnsProvider = await p.select({
-      message: "Select your DNS provider:",
-      options: [
-        { value: "cloudflare", label: "Cloudflare" },
-        { value: "dnsimple", label: "DNSimple" },
-        { value: "godaddy", label: "GoDaddy" },
-        { value: "vercel", label: "Vercel DNS" },
-        { value: "manual", label: "Other / Manual" },
-      ],
-    });
+    // Step 4: Detect DNS provider (from env or prompt)
+    let dnsProvider = process.env.HUSTLEMAIL_DNS_PROVIDER || "";
+    
+    if (!dnsProvider) {
+      dnsProvider = (await p.select({
+        message: "Select your DNS provider:",
+        options: [
+          { value: "cloudflare", label: "Cloudflare" },
+          { value: "dnsimple", label: "DNSimple" },
+          { value: "godaddy", label: "GoDaddy" },
+          { value: "vercel", label: "Vercel DNS" },
+          { value: "manual", label: "Other / Manual" },
+        ],
+      })) as string;
 
-    if (p.isCancel(dnsProvider)) {
-      p.cancel("Deploy cancelled");
-      process.exit(0);
+      if (p.isCancel(dnsProvider)) {
+        p.cancel("Deploy cancelled");
+        process.exit(0);
+      }
+    } else {
+      console.log(chalk.dim(`  → Using DNS provider from environment: ${dnsProvider}`));
     }
 
     // Cloudflare credentials (only needed if cloudflare selected)
     let cfApiKey = "";
     let cfZoneId = "";
+    let isNonInteractive = false;
 
     if (dnsProvider === "cloudflare") {
       // Check for Cloudflare Global API Key from environment
@@ -312,6 +319,14 @@ program
         "";
 
       if (!cfApiKey) {
+        // Non-interactive mode: fail if key not in env
+        if (!process.stdin.isTTY || process.env.CI) {
+          console.error(chalk.red("ERROR: CLOUDFLARE_GLOBAL_API_KEY not set and running non-interactively"));
+          console.error("Set CLOUDFLARE_GLOBAL_API_KEY environment variable and try again.");
+          process.exit(1);
+        }
+        
+        // Interactive mode: prompt for key
         const keyInput = await p.text({
           message: "Cloudflare Global API Key:",
           placeholder: "xxxxxxxx...",
@@ -324,6 +339,7 @@ program
         cfApiKey = keyInput as string;
       } else {
         console.log(chalk.dim(`  → Using Cloudflare Global API Key from environment`));
+        isNonInteractive = !process.stdin.isTTY || !!process.env.CI;
       }
 
       // Validate and get zone ID
@@ -331,7 +347,14 @@ program
       const zoneResult = await getCloudflareZoneId(domain, cfApiKey);
       if (!zoneResult.success) {
         s.stop("Cloudflare authentication failed");
-        console.log(chalk.red(`  Error: ${zoneResult.error}`));
+        console.error(chalk.red(`  Error: ${zoneResult.error}`));
+        
+        // Non-interactive mode: fail hard
+        if (isNonInteractive || !process.stdin.isTTY) {
+          process.exit(1);
+        }
+        
+        // Interactive mode: ask to continue manually
         const proceed = await p.confirm({
           message: "Continue with manual DNS setup?",
           initialValue: true,
@@ -383,6 +406,14 @@ program
     let resendApiKey = process.env.RESEND_API_KEY;
     
     if (!resendApiKey) {
+      // Non-interactive mode: fail if key not in env
+      if (!process.stdin.isTTY || process.env.CI) {
+        console.error(chalk.red("ERROR: RESEND_API_KEY not set and running non-interactively"));
+        console.error("Set RESEND_API_KEY environment variable and try again.");
+        process.exit(1);
+      }
+      
+      // Interactive mode: prompt for key
       const apiKeyInput = await p.text({
         message: "Enter your Resend API key:",
         placeholder: "re_xxxxx...",
@@ -581,16 +612,25 @@ program
       );
     }
 
-    // Step 10-11: Webmail subdomain
-    const webmailSubdomain = await p.text({
-      message: "Webmail subdomain:",
-      placeholder: `mail.${domain}`,
-      initialValue: `mail.${domain}`,
-    });
+    // Step 10-11: Webmail subdomain (from env or prompt)
+    let webmailSubdomain = process.env.HUSTLEMAIL_WEBMAIL_SUBDOMAIN || `mail.${domain}`;
+    
+    if (!process.env.HUSTLEMAIL_WEBMAIL_SUBDOMAIN) {
+      // Interactive mode: prompt (non-interactive uses default)
+      if (process.stdin.isTTY && !process.env.CI) {
+        webmailSubdomain = (await p.text({
+          message: "Webmail subdomain:",
+          placeholder: `mail.${domain}`,
+          initialValue: `mail.${domain}`,
+        })) as string;
 
-    if (p.isCancel(webmailSubdomain)) {
-      p.cancel("Deploy cancelled");
-      process.exit(0);
+        if (p.isCancel(webmailSubdomain)) {
+          p.cancel("Deploy cancelled");
+          process.exit(0);
+        }
+      }
+    } else {
+      console.log(chalk.dim(`  → Using webmail subdomain from environment: ${webmailSubdomain}`));
     }
 
     // Add webmail CNAME
@@ -611,20 +651,29 @@ program
       console.log(chalk.dim(`  → Add CNAME: ${webmailSubdomain} → hustlemail.app`));
     }
 
-    // Step 12: Initial box name
-    const initialBox = await p.text({
-      message: "Create your first mailbox:",
-      placeholder: "hello",
-      initialValue: "hello",
-      validate: (value) => {
-        if (!value) return "Mailbox name is required";
-        if (!/^[a-z0-9._-]+$/i.test(value)) return "Invalid mailbox name";
-      },
-    });
+    // Step 12: Initial box name (from env or prompt)
+    let initialBox = process.env.HUSTLEMAIL_INITIAL_BOX || "hello";
+    
+    if (!process.env.HUSTLEMAIL_INITIAL_BOX) {
+      // Interactive mode: prompt (non-interactive uses default)
+      if (process.stdin.isTTY && !process.env.CI) {
+        initialBox = (await p.text({
+          message: "Create your first mailbox:",
+          placeholder: "hello",
+          initialValue: "hello",
+          validate: (value) => {
+            if (!value) return "Mailbox name is required";
+            if (!/^[a-z0-9._-]+$/i.test(value)) return "Invalid mailbox name";
+          },
+        })) as string;
 
-    if (p.isCancel(initialBox)) {
-      p.cancel("Deploy cancelled");
-      process.exit(0);
+        if (p.isCancel(initialBox)) {
+          p.cancel("Deploy cancelled");
+          process.exit(0);
+        }
+      }
+    } else {
+      console.log(chalk.dim(`  → Using initial mailbox from environment: ${initialBox}`));
     }
 
     console.log(chalk.green(`  ✓ ${initialBox}@${domain} will be created`));
