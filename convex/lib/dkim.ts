@@ -4,7 +4,7 @@
  * Must be called from a Convex action (Node.js runtime).
  */
 
-import { generateKeyPairSync, createSign } from "node:crypto";
+import { generateKeyPairSync, createSign, createHash } from "crypto";
 
 /**
  * Generates a 2048-bit RSA DKIM key pair for a domain.
@@ -53,7 +53,6 @@ export function signMessage(
   headers: Record<string, string>,
   body: string
 ): string {
-  const { createHash } = require("node:crypto");
 
   // Canonicalize body (relaxed): trim trailing whitespace per line, ensure single CRLF at end
   const canonBody = body

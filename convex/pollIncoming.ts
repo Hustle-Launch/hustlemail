@@ -1,11 +1,12 @@
 /**
  * Poll for incoming emails from Resend.
- * Runs periodically to fetch and store new incoming emails.
+ * Runs on a 60-second cycle via Convex scheduler.
+ * Client polls every 5 seconds when focused, 60s when blurred.
  * @module convex/pollIncoming
  */
 
 import { v } from "convex/values";
-import { action, internalAction, mutation, internalMutation } from "./_generated/server";
+import { action, internalAction, mutation, internalMutation, scheduler } from "./_generated/server";
 import { internal } from "./_generated/api";
 
 /**
@@ -73,8 +74,9 @@ export const storeIncomingEmail = internalMutation({
 });
 
 /**
- * Poll Resend for incoming emails.
- * This action should be called periodically (e.g., via cron or scheduled function).
+ * Poll Resend for incoming emails on all domains.
+ * Runs every 60 seconds via Convex scheduler.
+ * Uses Resend's emails/receiving endpoint.
  */
 export const pollResendIncoming = internalAction({
   args: {
@@ -96,11 +98,12 @@ export const pollResendIncoming = internalAction({
     }
 
     try {
-      // Call Resend API to get incoming emails
-      // Note: This uses the Resend receiving API which may require additional setup
+      // Use Resend emails/receiving API
+      // Reference: https://resend.com/docs/api-reference/emails/list-incoming
       const response = await fetch(
-        `https://api.resend.com/emails/receiving?domain=${args.domainName}&limit=${limit}`,
+        `https://api.resend.com/emails/receiving?domain=${encodeURIComponent(args.domainName)}&limit=${limit}`,
         {
+          method: "GET",
           headers: {
             Authorization: `Bearer ${resendApiKey}`,
             "Content-Type": "application/json",
@@ -121,18 +124,69 @@ export const pollResendIncoming = internalAction({
       const errors: string[] = [];
       let processed = 0;
 
+      // Fetch all domains and mailboxes for quick lookup
+      const domains = await ctx.runQuery(internal.queries.getAllDomains);
+      const mailboxes = await ctx.runQuery(internal.queries.getAllMailboxes);
+
+      // Create maps for faster lookup
+      const domainMap = new Map(domains.map((d: any) => [d.name.toLowerCase(), d]));
+      const mailboxMap = new Map(
+        mailboxes.map((m: any) => [
+          `${m.address.toLowerCase()}@${m.domain.toLowerCase()}`,
+          m,
+        ])
+      );
+
       for (const email of emails) {
         try {
-          // Parse recipient to find the mailbox
+          // Parse recipient
           const toAddress = email.to?.[0]?.toLowerCase() || "";
-          const [localPart] = toAddress.split("@");
+          const [localPart, recipientDomain] = toAddress.split("@");
 
-          // TODO: Look up mailbox by local part and domain
-          // For now, we'd need to query the database
+          if (!recipientDomain) continue;
 
-          processed++;
+          // Find domain and mailbox
+          const domain = domainMap.get(recipientDomain);
+          const mailbox = mailboxMap.get(toAddress);
+
+          if (!domain || !mailbox) {
+            errors.push(`Domain or mailbox not found for ${toAddress}`);
+            continue;
+          }
+
+          // Convert email date to number (handle both timestamp and ISO string)
+          let emailDate = Date.now();
+          if (email.created_at) {
+            emailDate = new Date(email.created_at).getTime();
+          }
+
+          // Store the email
+          const result = await ctx.runMutation(internal.pollIncoming.storeIncomingEmail, {
+            domainId: domain._id,
+            mailboxId: mailbox._id,
+            messageId: email.id,
+            from: {
+              name: email.from_name,
+              address: email.from,
+            },
+            to: [
+              {
+                name: undefined,
+                address: toAddress,
+              },
+            ],
+            subject: email.subject || "(No subject)",
+            bodyText: email.text,
+            bodyHtml: email.html,
+            snippet: (email.text || email.html || "").slice(0, 200),
+            date: emailDate,
+          });
+
+          if (result.status === "stored") {
+            processed++;
+          }
         } catch (e) {
-          errors.push(`Failed to process email ${email.id}: ${e}`);
+          errors.push(`Failed to process email ${email.id}: ${String(e)}`);
         }
       }
 
@@ -140,15 +194,56 @@ export const pollResendIncoming = internalAction({
     } catch (e) {
       return {
         processed: 0,
-        errors: [`Failed to poll Resend: ${e}`],
+        errors: [`Failed to poll Resend: ${String(e)}`],
       };
     }
   },
 });
 
 /**
+ * Scheduler: Poll all configured domains every 60 seconds.
+ * Runs automatically in the background.
+ */
+export const schedulePollAllDomains = scheduler.interval(
+  "every 60 seconds",
+  internal.pollIncoming.pollAllDomains
+);
+
+/**
+ * Internal action to poll all configured domains.
+ * Called by the scheduler.
+ */
+export const pollAllDomains = internalAction({
+  args: {},
+  handler: async (ctx) => {
+    try {
+      // Get all domains from database
+      const domains = await ctx.runQuery(internal.queries.getAllDomains);
+
+      const results = [];
+      for (const domain of domains) {
+        const result = await ctx.runAction(internal.pollIncoming.pollResendIncoming, {
+          domainName: domain.name,
+          limit: 100,
+        });
+        results.push({
+          domain: domain.name,
+          ...result,
+        });
+      }
+
+      console.log("[pollAllDomains] Scheduled poll completed:", results);
+      return { success: true, results };
+    } catch (e) {
+      console.error("[pollAllDomains] Error:", e);
+      return { success: false, error: String(e) };
+    }
+  },
+});
+
+/**
  * Trigger manual poll for a specific domain.
- * Can be called from the client to force a poll.
+ * Can be called from the client to force an immediate poll.
  */
 export const triggerPoll = action({
   args: {

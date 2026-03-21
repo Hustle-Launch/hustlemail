@@ -443,3 +443,62 @@ export const listUsers = query({
     return users.filter(Boolean);
   },
 });
+
+/**
+ * Get all domains (for internal use by pollIncoming).
+ * Does not require authentication - used by Convex actions.
+ * @returns Array of all domains.
+ */
+export const getAllDomains = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("domains").collect();
+  },
+});
+
+/**
+ * Get all mailboxes (for internal use by pollIncoming).
+ * Does not require authentication - used by Convex actions.
+ * @returns Array of all mailboxes.
+ */
+export const getAllMailboxes = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db.query("mailboxes").collect();
+  },
+});
+
+/**
+ * Get all messages for a specific mailbox.
+ * Used by client polling hook for real-time updates.
+ * @param mailboxId - The mailbox to fetch messages for.
+ * @returns Array of messages for the mailbox, sorted newest first.
+ */
+export const getMessagesByMailbox = query({
+  args: { mailboxId: v.id("mailboxes") },
+  handler: async (ctx, args) => {
+    const identity = await ctx.auth.getUserIdentity();
+    if (!identity) return [];
+
+    const mailbox = await ctx.db.get(args.mailboxId);
+    if (!mailbox) return [];
+
+    // Verify user has access to this mailbox
+    const access = await ctx.db
+      .query("mailboxAccess")
+      .withIndex("by_mailbox", (q) => q.eq("mailboxId", args.mailboxId))
+      .filter((q) => q.eq(q.field("userId"), identity.subject))
+      .first();
+
+    if (!access && mailbox.ownerId !== identity.subject) return [];
+
+    // Fetch messages
+    const messages = await ctx.db
+      .query("messages")
+      .withIndex("by_mailbox", (q) => q.eq("mailboxId", args.mailboxId))
+      .order("desc")
+      .collect();
+
+    return messages;
+  },
+});
