@@ -8,15 +8,16 @@
  * @module
  */
 
+import type * as dkimActions from "../dkimActions.js";
 import type * as domains from "../domains.js";
 import type * as http from "../http.js";
-import type * as lib_dkim from "../lib/dkim.js";
+import type * as lib_auth from "../lib/auth.js";
+import type * as lib_dkim_stub from "../lib/dkim_stub.js";
+import type * as lib_encryption_stub from "../lib/encryption_stub.js";
 import type * as mailboxes from "../mailboxes.js";
 import type * as messages from "../messages.js";
 import type * as mutations from "../mutations.js";
 import type * as queries from "../queries.js";
-import type * as smtp from "../smtp.js";
-import type * as smtp_internal from "../smtp_internal.js";
 import type * as users from "../users.js";
 
 import type {
@@ -26,15 +27,16 @@ import type {
 } from "convex/server";
 
 declare const fullApi: ApiFromModules<{
+  dkimActions: typeof dkimActions;
   domains: typeof domains;
   http: typeof http;
-  "lib/dkim": typeof lib_dkim;
+  "lib/auth": typeof lib_auth;
+  "lib/dkim_stub": typeof lib_dkim_stub;
+  "lib/encryption_stub": typeof lib_encryption_stub;
   mailboxes: typeof mailboxes;
   messages: typeof messages;
   mutations: typeof mutations;
   queries: typeof queries;
-  smtp: typeof smtp;
-  smtp_internal: typeof smtp_internal;
   users: typeof users;
 }>;
 
