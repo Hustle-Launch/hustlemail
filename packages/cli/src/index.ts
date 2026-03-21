@@ -325,8 +325,8 @@ program
         process.env.CF_API_KEY ||
         "";
 
-      // For Global API Key, get email from environment or use default
-      cfEmail = process.env.CLOUDFLARE_EMAIL || process.env.CF_EMAIL || "michaelmonetized@gmail.com";
+      // For Global API Key, get email from environment (required)
+      cfEmail = process.env.CLOUDFLARE_EMAIL || process.env.CF_EMAIL || null;
 
       if (!cfApiKey) {
         const keyInput = await p.text({
@@ -341,6 +341,21 @@ program
         cfApiKey = keyInput as string;
       } else {
         console.log(chalk.dim(`  → Using Cloudflare API key from environment`));
+      }
+
+      // If we still don't have email, prompt for it
+      if (!cfEmail) {
+        const emailInput = await p.text({
+          message: "Cloudflare account email:",
+          placeholder: "you@example.com",
+          validate: (v) => v && v.includes("@") ? undefined : "Valid email required",
+        });
+        if (p.isCancel(emailInput)) {
+          p.cancel("Deploy cancelled");
+          process.exit(0);
+        }
+        cfEmail = emailInput as string;
+      } else {
         console.log(chalk.dim(`  → Using Cloudflare email: ${cfEmail}`));
       }
 
