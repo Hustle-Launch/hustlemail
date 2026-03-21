@@ -106,11 +106,11 @@ ${chalk.cyan("CNAME Record (Web Mail)")}
 
 /**
  * Cloudflare DNS helper - creates DNS records via Cloudflare API.
+ * Uses API Token (Bearer) authentication (modern, no email required).
  */
 async function createCloudflareRecord(
   zoneId: string,
-  email: string,
-  apiKey: string,
+  apiToken: string,
   record: { type: string; name: string; content: string; priority?: number; proxied?: boolean }
 ): Promise<{ success: boolean; error?: string; id?: string }> {
   const { execSync } = require("child_process");
@@ -130,8 +130,7 @@ async function createCloudflareRecord(
   try {
     const response = execSync(
       `curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records" \
-        -H "X-Auth-Email: ${email}" \
-        -H "X-Auth-Key: ${apiKey}" \
+        -H "Authorization: Bearer ${apiToken}" \
         -H "Content-Type: application/json" \
         --data '${JSON.stringify(data)}'`,
       { encoding: "utf-8" }
@@ -150,19 +149,18 @@ async function createCloudflareRecord(
 
 /**
  * Get Cloudflare zone ID for a domain.
+ * Uses API Token (Bearer) authentication.
  */
 async function getCloudflareZoneId(
   domain: string,
-  email: string,
-  apiKey: string
+  apiToken: string
 ): Promise<{ success: boolean; zoneId?: string; error?: string }> {
   const { execSync } = require("child_process");
   
   try {
     const response = execSync(
       `curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=${domain}" \
-        -H "X-Auth-Email: ${email}" \
-        -H "X-Auth-Key: ${apiKey}" \
+        -H "Authorization: Bearer ${apiToken}" \
         -H "Content-Type: application/json"`,
       { encoding: "utf-8" }
     );
@@ -171,7 +169,7 @@ async function getCloudflareZoneId(
     if (result.success && result.result?.[0]?.id) {
       return { success: true, zoneId: result.result[0].id };
     } else if (result.errors?.[0]?.code === 9103) {
-      return { success: false, error: "Invalid email or API key" };
+      return { success: false, error: "Invalid API token" };
     } else {
       return { success: false, error: result.errors?.[0]?.message || "Zone not found" };
     }
@@ -302,48 +300,32 @@ program
     }
 
     // Cloudflare credentials (only needed if cloudflare selected)
-    let cfEmail = "";
-    let cfApiKey = "";
+    // Using API Token (modern) instead of email + global key (legacy)
+    let cfApiToken = "";
     let cfZoneId = "";
 
     if (dnsProvider === "cloudflare") {
-      // Check for Cloudflare credentials
-      cfEmail = process.env.CLOUDFLARE_EMAIL || process.env.CF_EMAIL || "";
-      cfApiKey = process.env.CLOUDFLARE_GLOBAL_API_KEY || process.env.CLOUDFLARE_API_KEY || process.env.CF_API_KEY || "";
+      // Check for Cloudflare API Token in environment
+      cfApiToken = process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOKEN || "";
 
-      if (!cfEmail) {
-        const emailInput = await p.text({
-          message: "Cloudflare account email:",
-          placeholder: "you@example.com",
-          validate: (v) => v && v.includes("@") ? undefined : "Valid email required",
+      if (!cfApiToken) {
+        const tokenInput = await p.text({
+          message: "Cloudflare API Token:",
+          placeholder: "xxxxxxxx...",
+          validate: (v) => v?.length >= 20 ? undefined : "API token appears too short",
         });
-        if (p.isCancel(emailInput)) {
+        if (p.isCancel(tokenInput)) {
           p.cancel("Deploy cancelled");
           process.exit(0);
         }
-        cfEmail = emailInput as string;
+        cfApiToken = tokenInput as string;
       } else {
-        console.log(chalk.dim(`  → Using Cloudflare email: ${cfEmail}`));
-      }
-
-      if (!cfApiKey) {
-        const apiKeyInput = await p.text({
-          message: "Cloudflare Global API Key:",
-          placeholder: "xxxxxx...",
-          validate: (v) => v?.length >= 30 ? undefined : "API key appears too short",
-        });
-        if (p.isCancel(apiKeyInput)) {
-          p.cancel("Deploy cancelled");
-          process.exit(0);
-        }
-        cfApiKey = apiKeyInput as string;
-      } else {
-        console.log(chalk.dim(`  → Using Cloudflare API key from environment`));
+        console.log(chalk.dim(`  → Using Cloudflare API Token from environment`));
       }
 
       // Validate and get zone ID
       s.start("Validating Cloudflare credentials");
-      const zoneResult = await getCloudflareZoneId(domain, cfEmail, cfApiKey);
+      const zoneResult = await getCloudflareZoneId(domain, cfApiToken);
       if (!zoneResult.success) {
         s.stop("Cloudflare authentication failed");
         console.log(chalk.red(`  Error: ${zoneResult.error}`));
@@ -549,7 +531,7 @@ program
       let failCount = 0;
 
       for (const record of dnsRecords) {
-        const result = await createCloudflareRecord(cfZoneId, cfEmail, cfApiKey, {
+        const result = await createCloudflareRecord(cfZoneId, cfApiToken, {
           type: record.type,
           name: record.name,
           content: record.content,
@@ -611,7 +593,7 @@ program
     // Add webmail CNAME
     if (dnsProvider === "cloudflare" && cfZoneId) {
       const webmailName = (webmailSubdomain as string).replace(`.${domain}`, "");
-      const result = await createCloudflareRecord(cfZoneId, cfEmail, cfApiKey, {
+      const result = await createCloudflareRecord(cfZoneId, cfApiToken, {
         type: "CNAME",
         name: webmailName,
         content: "hustlemail.app",
