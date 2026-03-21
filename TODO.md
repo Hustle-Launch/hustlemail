@@ -1,4 +1,4 @@
-# CodeMail TODO
+# hustlemail TODO
 
 ## [2026-02-12] Task: MVP Prototype
 
@@ -7,7 +7,7 @@
 - [x] Package.json with workspaces
 - [x] Convex project initialization
 - [x] Convex schema (domains, mailboxes, messages, users, spamEvaluations)
-- [x] Config parser package (@codemail/config)
+- [x] Config parser package (@hustlemail/config)
 
 ### SMTP Ingress ✅
 - [x] SMTP server with smtp-server package
@@ -65,27 +65,27 @@
 - [x] GET /api/dns/[domain] - DNS record generation and verification
 
 ### CLI ✅
-- [x] `codemail setup <domain>` command
-- [x] `codemail deploy` command
-- [x] `codemail status` command
-- [x] `codemail dns` command
-- [x] `codemail logs` command
-- [x] `codemail users list/add` commands
+- [x] `hustlemail setup <domain>` command
+- [x] `hustlemail deploy` command
+- [x] `hustlemail status` command
+- [x] `hustlemail dns` command
+- [x] `hustlemail logs` command
+- [x] `hustlemail users list/add` commands
 
 ### Deployment ✅
-- [x] Vercel deployment for web - https://codemail.vercel.app
-- [x] GitHub repo - https://github.com/michaelmonetized/codemail
+- [x] Vercel deployment for web - https://hustlemail.vercel.app
+- [x] GitHub repo - https://github.com/michaelmonetized/hustlemail
 
 ### Remaining for Full Production
 - [x] Interactive Convex project setup (`bunx convex dev`) ✅
 - [x] Convex deployed: frugal-oriole-112.convex.cloud ✅
-- [x] Create CodeMail-specific Clerk app ✅
+- [x] Create hustlemail-specific Clerk app ✅
 - [x] Fixed Clerk publishable key typo in Vercel (flowmng→flowing) ✅
 - [x] Configured Clerk fallback development host to Vercel URL ✅
 - [x] Add RESEND_API_KEY to Vercel ✅
-- [x] Deploy SMTP server to Fly.io ✅ - codemail-smtp.fly.dev (ports 25/587)
+- [x] Deploy SMTP server to Fly.io ✅ - hustlemail-smtp.fly.dev (ports 25/587)
 - [x] SMTP server connected to Convex backend ✅
-- [ ] Custom domain (codemail.dev) - requires domain purchase
+- [ ] Custom domain (hustlemail.dev) - requires domain purchase
 - [ ] DNS verification automation
 
 ---
@@ -100,10 +100,10 @@
 - `2087db5` feat(smtp): add SMTP ingress server
 
 ## Live URLs
-- **Web App:** https://codemail-web.vercel.app
-- **SMTP Server:** codemail-smtp.fly.dev (ports 25 & 587)
+- **Web App:** https://hustlemail-web.vercel.app
+- **SMTP Server:** hustlemail-smtp.fly.dev (ports 25 & 587)
 - **Convex:** https://dashboard.convex.dev/d/frugal-oriole-112
-- **GitHub:** https://github.com/michaelmonetized/codemail
+- **GitHub:** https://github.com/michaelmonetized/hustlemail
 
 ## Stats
 - **Files created:** ~80+

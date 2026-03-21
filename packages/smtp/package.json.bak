@@ -1,0 +1,39 @@
+{
+  "name": "@codemail/smtp",
+  "version": "0.1.0",
+  "description": "SMTP ingress server for CodeMail - receives inbound mail and stores in Convex",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "lint": "echo 'No linter configured'",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "mailauth": "^4.13.0",
+    "mailparser": "^3.7.2",
+    "smtp-server": "^3.13.6"
+  },
+  "devDependencies": {
+    "@types/mailparser": "^3.4.5",
+    "@types/node": "^22.13.1",
+    "@types/smtp-server": "^3.5.10",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "keywords": [
+    "smtp",
+    "email",
+    "mail",
+    "convex",
+    "codemail"
+  ],
+  "author": "CodeMail",
+  "license": "MIT"
+}

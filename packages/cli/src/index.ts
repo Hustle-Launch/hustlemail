@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * @codemail/cli - Command line interface for CodeMail.
+ * @hustlemail/cli - Command line interface for hustlemail.
  * Provides commands for setting up, deploying, and managing email infrastructure.
  */
 
@@ -11,13 +11,13 @@ import { writeFileSync, existsSync } from "fs";
 import { join } from "path";
 import { promises as dns } from "dns";
 import * as net from "net";
-import { generateExampleConfig, parseMailConfig } from "@codemail/config";
+import { generateExampleConfig, parseMailConfig } from "@hustlemail/config";
 
 /** CLI program instance. */
 const program = new Command();
 
 program
-  .name("codemail")
+  .name("hustlemail")
   .description("Email infrastructure that lives in your GitHub repo")
   .version("0.1.0");
 
@@ -28,7 +28,7 @@ program
   .command("setup [domain]")
   .description("Set up email for a domain")
   .action(async (domainArg?: string) => {
-    p.intro(chalk.bgHex("#FF6B35").black(" CodeMail "));
+    p.intro(chalk.bgHex("#FF6B35").black(" hustlemail "));
 
     let domain = domainArg;
 
@@ -89,18 +89,18 @@ ${chalk.cyan("TXT Record (SPF)")}
   Value: v=spf1 include:_spf.resend.com ~all
 
 ${chalk.cyan("TXT Record (DKIM)")}
-  Host: codemail._domainkey
+  Host: hustlemail._domainkey
   Value: (will be generated on deploy)
 
 ${chalk.cyan("CNAME Record (Web Mail)")}
   Host: mail
-  Value: codemail.app
+  Value: hustlemail.app
 `,
       "DNS Configuration"
     );
 
     p.outro(
-      `${chalk.green("✓")} Run ${chalk.cyan("codemail deploy")} after adding DNS records`
+      `${chalk.green("✓")} Run ${chalk.cyan("hustlemail deploy")} after adding DNS records`
     );
   });
 
@@ -111,12 +111,12 @@ program
   .command("deploy")
   .description("Deploy mail configuration changes")
   .action(async () => {
-    p.intro(chalk.bgHex("#FF6B35").black(" CodeMail Deploy "));
+    p.intro(chalk.bgHex("#FF6B35").black(" hustlemail Deploy "));
 
     const configPath = join(process.cwd(), "mail.config.ts");
 
     if (!existsSync(configPath)) {
-      p.cancel("No mail.config.ts found. Run `codemail setup` first.");
+      p.cancel("No mail.config.ts found. Run `hustlemail setup` first.");
       process.exit(1);
     }
 
@@ -150,7 +150,7 @@ program
   .command("status")
   .description("Check domain status and health")
   .action(async () => {
-    p.intro(chalk.bgHex("#FF6B35").black(" CodeMail Status "));
+    p.intro(chalk.bgHex("#FF6B35").black(" hustlemail Status "));
 
     const s = p.spinner();
     s.start("Checking domain status");
@@ -182,7 +182,7 @@ program
     const configPath = join(process.cwd(), "mail.config.ts");
 
     if (!existsSync(configPath)) {
-      console.error(chalk.red("No mail.config.ts found. Run `codemail setup` first."));
+      console.error(chalk.red("No mail.config.ts found. Run `hustlemail setup` first."));
       process.exit(1);
     }
 
@@ -202,7 +202,7 @@ ${chalk.cyan("2. SPF Record")} (authorizes sending)
 
 ${chalk.cyan("3. DKIM Record")} (email signing)
    Type:     TXT
-   Host:     codemail._domainkey
+   Host:     hustlemail._domainkey
    Value:    v=DKIM1; k=rsa; p=<your-public-key>
 
 ${chalk.cyan("4. DMARC Record")} (optional but recommended)
@@ -213,9 +213,9 @@ ${chalk.cyan("4. DMARC Record")} (optional but recommended)
 ${chalk.cyan("5. CNAME Record")} (web mail interface)
    Type:     CNAME
    Host:     mail
-   Value:    codemail.app
+   Value:    hustlemail.app
 
-${chalk.dim("Run `codemail verify` after adding these records.")}
+${chalk.dim("Run `hustlemail verify` after adding these records.")}
 `);
   });
 
@@ -226,7 +226,7 @@ program
   .command("test <domain>")
   .description("Run DNS + SMTP reachability checks for a domain")
   .action(async (domain: string) => {
-    p.intro(chalk.bgHex("#FF6B35").black(" CodeMail Test "));
+    p.intro(chalk.bgHex("#FF6B35").black(" hustlemail Test "));
 
     const failures: string[] = [];
     const pass = (msg: string) => console.log(`${chalk.green("✓")} ${msg}`);
@@ -258,8 +258,8 @@ program
       fail(`SPF lookup failed (add TXT @: v=spf1 include:_spf.resend.com ~all)`);
     }
 
-    // DKIM (selector: codemail)
-    const dkimHost = `codemail._domainkey.${domain}`;
+    // DKIM (selector: hustlemail)
+    const dkimHost = `hustlemail._domainkey.${domain}`;
     try {
       const txt = await dns.resolveTxt(dkimHost);
       const rows = txt.map((r) => r.join(""));

@@ -64,7 +64,7 @@ export default function NewDomainPage() {
     {
       id: "dkim",
       type: "TXT",
-      host: "codemail._domainkey",
+      host: "hustlemail._domainkey",
       value: "v=DKIM1; k=rsa; p=MIGfMA0GCSq...(truncated)",
     },
     {

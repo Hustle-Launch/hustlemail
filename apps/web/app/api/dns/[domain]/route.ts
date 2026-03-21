@@ -39,17 +39,17 @@ export async function GET(
       host: "@",
       value: `10 mail.${domain}`,
       priority: 10,
-      purpose: "Routes incoming email to CodeMail servers",
+      purpose: "Routes incoming email to hustlemail servers",
     },
     spf: {
       type: "TXT",
       host: "@",
       value: "v=spf1 include:_spf.resend.com ~all",
-      purpose: "Authorizes CodeMail to send email on your behalf",
+      purpose: "Authorizes hustlemail to send email on your behalf",
     },
     dkim: {
       type: "TXT",
-      host: "codemail._domainkey",
+      host: "hustlemail._domainkey",
       value: "v=DKIM1; k=rsa; p=MIGfMA0GCSqGSIb3DQEBA...", // Placeholder - would be generated per domain
       purpose: "Signs outgoing emails to prevent spoofing",
     },
@@ -62,7 +62,7 @@ export async function GET(
     webmail: {
       type: "CNAME",
       host: "mail",
-      value: "codemail.vercel.app",
+      value: "hustlemail.vercel.app",
       purpose: "Enables web mail access at mail.${domain}",
     },
   };
@@ -124,11 +124,11 @@ export async function GET(
   });
 
   // Check DKIM
-  const dkim = await resolveDns(() => dns.resolveTxt(`codemail._domainkey.${domain}`), [] as string[][]);
+  const dkim = await resolveDns(() => dns.resolveTxt(`hustlemail._domainkey.${domain}`), [] as string[][]);
   const dkimRecord = dkim.data.flat().find((r) => r.startsWith("v=DKIM1"));
   checks.push({
     type: "TXT (DKIM)",
-    host: `codemail._domainkey.${domain}`,
+    host: `hustlemail._domainkey.${domain}`,
     expectedValue: records.dkim.value,
     actualValue: dkim.error?.message ?? dkimRecord ?? "Not set",
     status: dkim.error ? "fail" : dkimRecord ? "pass" : "fail",
@@ -147,7 +147,7 @@ export async function GET(
 
   // Check CNAME for webmail
   const cname = await resolveDns(() => dns.resolveCname(`mail.${domain}`), [] as string[]);
-  const hasCname = cname.data.some((r) => r.includes("codemail"));
+  const hasCname = cname.data.some((r) => r.includes("hustlemail"));
   checks.push({
     type: "CNAME",
     host: `mail.${domain}`,

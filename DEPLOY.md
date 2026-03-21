@@ -1,10 +1,10 @@
-# CodeMail Deployment Guide
+# hustlemail Deployment Guide
 
 ## Quick Start
 
 ### 1. Deploy Web App (Vercel)
 
-The web app is already deployed at https://codemail.vercel.app
+The web app is already deployed at https://hustlemail.vercel.app
 
 To deploy your own:
 
@@ -20,8 +20,8 @@ CLERK_SECRET_KEY=sk_...
 CLERK_WEBHOOK_SECRET=whsec_...
 NEXT_PUBLIC_CONVEX_URL=https://your-project.convex.cloud
 RESEND_API_KEY=re_...
-CODEMAIL_DOMAIN=yourdomain.com
-CODEMAIL_WEBHOOK_SECRET=your-secret
+hustlemail_DOMAIN=yourdomain.com
+hustlemail_WEBHOOK_SECRET=your-secret
 ```
 
 ### 2. Set Up Convex
@@ -57,7 +57,7 @@ brew install flyctl
 
 # Login and create app
 fly auth login
-fly launch --name codemail-smtp --region iad
+fly launch --name hustlemail-smtp --region iad
 
 # Set secrets
 fly secrets set \
@@ -93,7 +93,7 @@ railway up
 cd packages/smtp
 
 # Build image
-docker build -t codemail-smtp .
+docker build -t hustlemail-smtp .
 
 # Run with environment variables
 docker run -d \
@@ -103,7 +103,7 @@ docker run -d \
   -e OPENROUTER_API_KEY=your-key \
   -e WEBHOOK_URL=https://yourdomain.com/api/inbound \
   -e WEBHOOK_SECRET=your-secret \
-  codemail-smtp
+  hustlemail-smtp
 ```
 
 ### 5. Configure DNS
@@ -115,15 +115,15 @@ Add these records to your domain:
 | MX | @ | mail.yourdomain.com | 10 |
 | A | mail | [SMTP Server IP] | - |
 | TXT | @ | v=spf1 include:_spf.resend.com ~all | - |
-| TXT | codemail._domainkey | v=DKIM1; k=rsa; p=... | - |
+| TXT | hustlemail._domainkey | v=DKIM1; k=rsa; p=... | - |
 | TXT | _dmarc | v=DMARC1; p=none | - |
-| CNAME | app | codemail.vercel.app | - |
+| CNAME | app | hustlemail.vercel.app | - |
 
 ### 6. Verify Setup
 
 ```bash
 # Check DNS records
-codemail dns
+hustlemail dns
 
 # Check domain status
 curl https://yourdomain.com/api/dns/yourdomain.com
@@ -169,10 +169,10 @@ curl -X POST https://yourdomain.com/api/send \
 
 ```bash
 # Fly.io
-fly logs -a codemail-smtp
+fly logs -a hustlemail-smtp
 
 # Vercel
-vercel logs codemail-web
+vercel logs hustlemail-web
 
 # Convex
 bunx convex logs
@@ -189,7 +189,7 @@ bunx convex logs
 ### Email not arriving?
 
 1. Check MX record: `dig MX yourdomain.com`
-2. Check SMTP logs: `fly logs -a codemail-smtp`
+2. Check SMTP logs: `fly logs -a hustlemail-smtp`
 3. Check spam score in webhook response
 
 ### DNS verification failing?

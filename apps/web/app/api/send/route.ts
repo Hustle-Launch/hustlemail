@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Default from address
-    const fromAddress = from || `CodeMail <noreply@${process.env.CODEMAIL_DOMAIN || "codemail.dev"}>`;
+    const fromAddress = from || `hustlemail <noreply@${process.env.hustlemail_DOMAIN || "hustlemail.dev"}>`;
 
     const resend = getResend();
     const { data, error } = await resend.emails.send({

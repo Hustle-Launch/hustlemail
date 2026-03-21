@@ -1,4 +1,4 @@
-import { parseMailConfig } from "@codemail/config";
+import { parseMailConfig } from "@hustlemail/config";
 import { createHash } from "crypto";
 import { pathToFileURL } from "url";
 import { existsSync, readFileSync } from "fs";

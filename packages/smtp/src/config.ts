@@ -106,6 +106,6 @@ export function loadConfig(): Config {
 
     // SPF/DKIM enforcement
     rejectAuthFail: process.env.SMTP_REJECT_AUTH_FAIL === 'true',
-    mtaHostname: process.env.MTA_HOSTNAME || process.env.SMTP_HOST || 'mail.codemail.dev',
+    mtaHostname: process.env.MTA_HOSTNAME || process.env.SMTP_HOST || 'mail.hustlemail.dev',
   };
 }

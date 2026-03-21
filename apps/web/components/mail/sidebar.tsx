@@ -92,7 +92,7 @@ export function Sidebar() {
           <div className="flex h-8 w-8 items-center justify-center rounded-md bg-primary text-primary-foreground font-mono font-bold text-sm">
             CM
           </div>
-          <span className="font-semibold tracking-tight">CodeMail</span>
+          <span className="font-semibold tracking-tight">hustlemail</span>
         </div>
         <Tooltip>
           <TooltipTrigger asChild>

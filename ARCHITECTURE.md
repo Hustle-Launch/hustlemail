@@ -1,8 +1,8 @@
-# CodeMail Architecture
+# hustlemail Architecture
 
 ## Overview
 
-CodeMail is a developer-first mail infrastructure platform where email configuration lives in your GitHub repo as TypeScript, deploys like a modern web app, and runs on real-time infrastructure.
+hustlemail is a developer-first mail infrastructure platform where email configuration lives in your GitHub repo as TypeScript, deploys like a modern web app, and runs on real-time infrastructure.
 
 ```
 ┌─────────────────────────────────────────┐

@@ -19,7 +19,7 @@ function ComposeContent() {
   const replyTo = replyToId
     ? {
         from: { name: "GitHub", address: "noreply@github.com" },
-        subject: "[codemail/api] Pull request #42: Add spam detection",
+        subject: "[hustlemail/api] Pull request #42: Add spam detection",
         body: "mergify[bot] merged 1 commit into main...",
       }
     : undefined;
@@ -42,7 +42,7 @@ function ComposeContent() {
   return (
     <ComposeEditor
       replyTo={replyTo}
-      initialSubject={forwardId ? "Fwd: [codemail/api] Pull request #42" : undefined}
+      initialSubject={forwardId ? "Fwd: [hustlemail/api] Pull request #42" : undefined}
       onSend={handleSend}
     />
   );

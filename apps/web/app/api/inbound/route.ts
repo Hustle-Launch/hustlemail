@@ -17,7 +17,7 @@ import {
 } from "@/lib/convex-smtp";
 
 /** Webhook secret for verifying requests from SMTP server. */
-const WEBHOOK_SECRET = process.env.CODEMAIL_WEBHOOK_SECRET;
+const WEBHOOK_SECRET = process.env.hustlemail_WEBHOOK_SECRET;
 
 /** Inbound email payload from SMTP server. */
 interface InboundEmail {
@@ -97,7 +97,7 @@ async function processAttachments(
 export async function POST(request: NextRequest) {
   // ── Auth ─────────────────────────────────────────────────────────────────
   if (!WEBHOOK_SECRET) {
-    console.error("CODEMAIL_WEBHOOK_SECRET not configured");
+    console.error("hustlemail_WEBHOOK_SECRET not configured");
     return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
   }
 
@@ -178,7 +178,7 @@ export async function POST(request: NextRequest) {
       mailboxId: mailbox._id,
       messageId:
         email.messageId ||
-        `<${Date.now()}.${Math.random().toString(36).slice(2)}@codemail.dev>`,
+        `<${Date.now()}.${Math.random().toString(36).slice(2)}@hustlemail.dev>`,
       inReplyTo: email.inReplyTo,
       references: email.references,
       from: email.from,
@@ -227,5 +227,5 @@ export async function POST(request: NextRequest) {
  * GET /api/inbound — health check.
  */
 export async function GET() {
-  return NextResponse.json({ status: "ok", service: "codemail-inbound" });
+  return NextResponse.json({ status: "ok", service: "hustlemail-inbound" });
 }

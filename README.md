@@ -1,19 +1,19 @@
-# CodeMail
+# hustlemail
 
 **Email infrastructure that lives in your GitHub repo.**
 
 ```bash
-npx codemail setup mycompany.com
+npx hustlemail setup mycompany.com
 # → mail.config.ts created
 # → DNS records shown
-# → founder@mycompany.com works in CodeMail Web
+# → founder@mycompany.com works in hustlemail Web
 ```
 
 ## The Pitch
 
 You have an idea. You want it to feel real from day 1. Real companies have company email. You shouldn't have to pay $600/year for 5 mailboxes while you're still figuring out if the product works.
 
-CodeMail is email infrastructure for founders:
+hustlemail is email infrastructure for founders:
 - **Config in code** — `mail.config.ts` defines your mailboxes, routes, and rules
 - **Deploy like an app** — Push to GitHub, email updates instantly
 - **Costs pennies** — Per-domain pricing, not per-seat. Unlimited mailboxes.
@@ -23,17 +23,17 @@ CodeMail is email infrastructure for founders:
 
 ```bash
 # Install CLI
-npm install -g @codemail/cli
+npm install -g @hustlemail/cli
 
 # Set up a domain
-codemail setup mycompany.com
+hustlemail setup mycompany.com
 
 # This creates mail.config.ts:
 ```
 
 ```typescript
 // mail.config.ts
-import { defineMailConfig } from "@codemail/config";
+import { defineMailConfig } from "@hustlemail/config";
 
 export default defineMailConfig({
   domain: "mycompany.com",
@@ -72,7 +72,7 @@ Pushes that change `mail.config.ts` now run the **Mail Config Sync** GitHub Acti
 
 ## Live Demo
 
-- Public read-only demo inbox: `/demo` (host as `demo.codemail.dev` in production)
+- Public read-only demo inbox: `/demo` (host as `demo.hustlemail.dev` in production)
 - Includes seeded realistic threads + visible DNS records for setup walkthroughs
 
 ## Features
@@ -112,9 +112,9 @@ You're not paying for mailbox count. You're paying for a different product categ
 | **Managed** | $80/mo/domain | White-glove onboarding, DNS/auth setup, migration help, deliverability tuning, priority incident response |
 | **Self-Hosted** | Free (OSS) | Run everything yourself |
 
-### CodeMail vs Low-Cost Mail Hosts
+### hustlemail vs Low-Cost Mail Hosts
 
-| Capability | Migadu ($1.58/mo equiv) | Fastmail | CodeMail ($8/domain) |
+| Capability | Migadu ($1.58/mo equiv) | Fastmail | hustlemail ($8/domain) |
 |---|---|---|---|
 | Config in code (`mail.config.ts`) | ❌ | ❌ | ✅ |
 | Git push -> config deploy pipeline | ❌ | ❌ | ✅ |
@@ -134,7 +134,7 @@ mail.config.ts → Convex Backend → SMTP/Web
 4. SMTP ingress accepts incoming mail
 5. Web mail gives you a Gmail-like interface
 
-> Note: IMAP client support is planned for Phase 2. Today, mailbox access is through CodeMail Web.
+> Note: IMAP client support is planned for Phase 2. Today, mailbox access is through hustlemail Web.
 
 ## Web Mail
 
@@ -150,13 +150,13 @@ Access your mail at `mail.yourdomain.com`:
 ## CLI Commands
 
 ```bash
-codemail setup <domain>     # Initialize a new domain
-codemail deploy             # Deploy config changes
-codemail status             # Check domain health
-codemail dns                # Show required DNS records
-codemail logs               # Stream real-time logs
-codemail users list         # List mailbox users
-codemail users add <email>  # Add a user
+hustlemail setup <domain>     # Initialize a new domain
+hustlemail deploy             # Deploy config changes
+hustlemail status             # Check domain health
+hustlemail dns                # Show required DNS records
+hustlemail logs               # Stream real-time logs
+hustlemail users list         # List mailbox users
+hustlemail users add <email>  # Add a user
 ```
 
 ## Self-Hosting
@@ -164,8 +164,8 @@ codemail users add <email>  # Add a user
 Everything is open source. Run your own:
 
 ```bash
-git clone https://github.com/codemail/codemail
-cd codemail
+git clone https://github.com/hustlemail/hustlemail
+cd hustlemail
 
 # Deploy Convex backend
 npx convex deploy
@@ -189,7 +189,7 @@ cd apps/web && vercel deploy
 
 ## Why Not Just Use Gmail/Google Workspace?
 
-| | Google Workspace | CodeMail |
+| | Google Workspace | hustlemail |
 |---|---|---|
 | 5 users | $30-90/mo | $8/mo |
 | 50 users | $300-900/mo | $8/mo |
@@ -208,4 +208,4 @@ MIT — See [LICENSE](./LICENSE)
 
 ---
 
-**CodeMail** — Email shouldn't be a business problem. It should be a configuration problem.
+**hustlemail** — Email shouldn't be a business problem. It should be a configuration problem.

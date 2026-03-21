@@ -1,5 +1,5 @@
 {
-  "name": "codemail",
+  "name": "hustlemail",
   "private": true,
   "scripts": {
     "dev": "turbo dev",

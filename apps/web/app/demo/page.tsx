@@ -61,18 +61,18 @@ const demoMessages: DemoMessage[] = [
 ];
 
 const dnsRows = [
-  ["MX", "@", "mail.demo.codemail.dev", "10"],
+  ["MX", "@", "mail.demo.hustlemail.dev", "10"],
   ["TXT", "@", "v=spf1 include:_spf.resend.com ~all", "-"],
-  ["TXT", "codemail._domainkey", "v=DKIM1; k=rsa; p=<public-key>", "-"],
-  ["TXT", "_dmarc", "v=DMARC1; p=none; rua=mailto:dmarc@demo.codemail.dev", "-"],
-  ["CNAME", "mail", "codemail.app", "-"],
+  ["TXT", "hustlemail._domainkey", "v=DKIM1; k=rsa; p=<public-key>", "-"],
+  ["TXT", "_dmarc", "v=DMARC1; p=none; rua=mailto:dmarc@demo.hustlemail.dev", "-"],
+  ["CNAME", "mail", "hustlemail.app", "-"],
 ];
 
 export default function DemoPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-8 md:px-6">
       <div className="mb-6 flex flex-col gap-2">
-        <h1 className="text-2xl font-semibold tracking-tight">CodeMail Live Demo</h1>
+        <h1 className="text-2xl font-semibold tracking-tight">hustlemail Live Demo</h1>
         <p className="text-sm text-muted-foreground">
           Public, no-login, read-only mailbox preview. This simulates a real founder inbox with support,
           newsletter, and spam traffic.
@@ -82,7 +82,7 @@ export default function DemoPage() {
       <div className="grid gap-6 lg:grid-cols-[1.3fr_1fr]">
         <section className="rounded-xl border bg-card">
           <div className="border-b px-4 py-3">
-            <h2 className="font-medium">demo@demo.codemail.dev — Inbox (read-only)</h2>
+            <h2 className="font-medium">demo@demo.hustlemail.dev — Inbox (read-only)</h2>
             <p className="text-xs text-muted-foreground">5 seeded threads • mobile responsive • no auth wall</p>
           </div>
           <ul className="divide-y">

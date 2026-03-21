@@ -1,6 +1,6 @@
-# @codemail/smtp
+# @hustlemail/smtp
 
-SMTP ingress server for CodeMail. Receives inbound email via SMTP protocol, validates recipients, evaluates spam, and stores messages in Convex.
+SMTP ingress server for hustlemail. Receives inbound email via SMTP protocol, validates recipients, evaluates spam, and stores messages in Convex.
 
 ## Features
 
@@ -31,16 +31,16 @@ npm run dev
 
 ```bash
 # Build image
-docker build -t codemail-smtp .
+docker build -t hustlemail-smtp .
 
 # Run container
 docker run -d \
-  --name codemail-smtp \
+  --name hustlemail-smtp \
   -p 25:25 \
   -e CONVEX_URL=https://your-project.convex.cloud \
   -e CONVEX_DEPLOY_KEY=prod:your-key \
   -e OPENROUTER_API_KEY=sk-or-v1-xxx \
-  codemail-smtp
+  hustlemail-smtp
 ```
 
 ### Docker Compose
@@ -85,7 +85,7 @@ services:
                     └─────────────────┬───────────────────┘
                                       │ SMTP
                     ┌─────────────────▼───────────────────┐
-                    │       @codemail/smtp Server         │
+                    │       @hustlemail/smtp Server         │
                     │                                     │
                     │  ┌───────────┐  ┌────────────────┐  │
                     │  │ RCPT TO   │  │   DATA         │  │
@@ -250,7 +250,7 @@ docker run -d \
   -e TLS_KEY_PATH=/certs/key.pem \
   -e TLS_CERT_PATH=/certs/cert.pem \
   -v /path/to/certs:/certs:ro \
-  codemail-smtp
+  hustlemail-smtp
 ```
 
 ## License

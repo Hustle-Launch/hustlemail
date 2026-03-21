@@ -27,7 +27,7 @@ const mockMessages = [
   {
     _id: "1",
     from: { name: "GitHub", address: "noreply@github.com" },
-    subject: "[codemail/api] Pull request #42: Add spam detection",
+    subject: "[hustlemail/api] Pull request #42: Add spam detection",
     snippet: "mergify[bot] merged 1 commit into main from feature/spam-detection. This PR adds AI-powered spam detection using Claude...",
     date: Date.now() - 1000 * 60 * 15, // 15 min ago
     isRead: false,
@@ -38,8 +38,8 @@ const mockMessages = [
   {
     _id: "2",
     from: { name: "Vercel", address: "notifications@vercel.com" },
-    subject: "Deployment succeeded for codemail",
-    snippet: "Your deployment has completed successfully. Preview: https://codemail-git-main.vercel.app",
+    subject: "Deployment succeeded for hustlemail",
+    snippet: "Your deployment has completed successfully. Preview: https://hustlemail-git-main.vercel.app",
     date: Date.now() - 1000 * 60 * 45, // 45 min ago
     isRead: false,
     isStarred: false,
@@ -60,7 +60,7 @@ const mockMessages = [
   {
     _id: "4",
     from: { name: "Stripe", address: "receipts@stripe.com" },
-    subject: "Your receipt from CodeMail",
+    subject: "Your receipt from hustlemail",
     snippet: "Receipt #4892-1234. Amount paid: $29.00. Thank you for your payment.",
     date: Date.now() - 1000 * 60 * 60 * 5, // 5 hours ago
     isRead: true,
@@ -72,7 +72,7 @@ const mockMessages = [
     _id: "5",
     from: { name: "Linear", address: "notifications@linear.app" },
     subject: "Issue CM-127 assigned to you",
-    snippet: "[CodeMail] Implement rate limiting for outbound emails. Priority: High. Assignee: You",
+    snippet: "[hustlemail] Implement rate limiting for outbound emails. Priority: High. Assignee: You",
     date: Date.now() - 1000 * 60 * 60 * 8, // 8 hours ago
     isRead: true,
     isStarred: true,
@@ -94,7 +94,7 @@ const mockMessages = [
     _id: "7",
     from: { name: "Sarah Chen", address: "sarah@startup.io" },
     subject: "Partnership opportunity",
-    snippet: "Hi! I'm the founder of StartupIO and I came across CodeMail. I'd love to explore a potential integration...",
+    snippet: "Hi! I'm the founder of StartupIO and I came across hustlemail. I'd love to explore a potential integration...",
     date: Date.now() - 1000 * 60 * 60 * 48, // 2 days ago
     isRead: true,
     isStarred: true,

@@ -10,7 +10,7 @@ import type { MetadataRoute } from "next";
  * @returns Array of sitemap entries with URLs and metadata.
  */
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = "https://codemail.vercel.app";
+  const baseUrl = "https://hustlemail.vercel.app";
 
   return [
     {

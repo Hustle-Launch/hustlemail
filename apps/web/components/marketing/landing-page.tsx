@@ -1,5 +1,5 @@
 /**
- * Landing page component for CodeMail marketing site.
+ * Landing page component for hustlemail marketing site.
  * Features animated terminal demos, pricing cards, and growth stages.
  * @module components/marketing/landing-page
  */
@@ -31,13 +31,13 @@ import { useRef, useEffect, useState } from "react";
 
 /**
  * Terminal animation steps for the hero section demo.
- * Shows the Day 1 founder workflow of setting up CodeMail.
+ * Shows the Day 1 founder workflow of setting up hustlemail.
  */
 const HERO_TERMINAL_STEPS = [
   { command: "npx create-next-app t3-chat-web", delay: 10 },
   { output: "✓ Created t3-chat-web", delay: 600 },
   { command: "cd t3-chat-web", delay: 800 },
-  { command: "npx codemail create t3.chat", delay: 200 },
+  { command: "npx hustlemail create t3.chat", delay: 200 },
   { output: "✓ mail.config.ts created", delay: 500 },
   {
     config: `export const mail = {
@@ -60,7 +60,7 @@ const HERO_TERMINAL_STEPS = [
 
 /**
  * Animated terminal component for the hero section.
- * Displays a typing animation showing the CodeMail setup workflow.
+ * Displays a typing animation showing the hustlemail setup workflow.
  * @returns The animated terminal React element.
  */
 function AnimatedTerminal() {
@@ -150,7 +150,7 @@ const DAY1_STEPS = [
   { command: "npx create-next-app t3-chat-web", delay: 10 },
   { output: "✓ Created t3-chat-web", delay: 600 },
   { command: "cd t3-chat-web", delay: 800 },
-  { command: "npx codemail create t3.chat", delay: 2000 },
+  { command: "npx hustlemail create t3.chat", delay: 2000 },
   { output: "✓ mail.config.ts created", delay: 500 },
   {
     config: `export const mail = {
@@ -497,7 +497,7 @@ export default function LandingPage() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-500 to-purple-500 flex items-center justify-center">
               <Envelope className="w-4 h-4 text-white" />
             </div>
-            <span className="text-xl font-bold text-white">CodeMail</span>
+            <span className="text-xl font-bold text-white">hustlemail</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
             <a
@@ -640,7 +640,7 @@ export const mail = {
                 className="flex flex-col sm:flex-row gap-3 justify-center lg:justify-end mt-4"
               >
                 <a
-                  href="https://github.com/michaelmonetized/codemail"
+                  href="https://github.com/michaelmonetized/hustlemail"
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 text-white font-semibold rounded-xl border border-white/10 transition-all"
@@ -684,7 +684,7 @@ export const mail = {
             <FeatureCard
               icon={Terminal}
               title="One command setup"
-              description="npx codemail create t3.chat — creates mail.config.ts, configures DNS, generates DKIM keys. You're done."
+              description="npx hustlemail create t3.chat — creates mail.config.ts, configures DNS, generates DKIM keys. You're done."
               delay={0}
             />
             <FeatureCard
@@ -1093,10 +1093,10 @@ export const mail = {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-500 to-purple-500 flex items-center justify-center">
                 <Envelope className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xl font-bold text-white">CodeMail</span>
+              <span className="text-xl font-bold text-white">hustlemail</span>
             </div>
             <p className="text-sm text-zinc-500">
-              © {new Date().getFullYear()} CodeMail. Infrastructure for
+              © {new Date().getFullYear()} hustlemail. Infrastructure for
               founders.
             </p>
             <div className="flex items-center gap-6">
@@ -1113,7 +1113,7 @@ export const mail = {
                 Terms
               </a>
               <a
-                href="https://github.com/michaelmonetized/codemail"
+                href="https://github.com/michaelmonetized/hustlemail"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-zinc-500 hover:text-white transition-colors"

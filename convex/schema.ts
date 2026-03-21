@@ -1,5 +1,5 @@
 /**
- * Convex database schema for CodeMail.
+ * Convex database schema for hustlemail.
  * Defines all tables, indexes, and search indexes for the email system.
  */
 

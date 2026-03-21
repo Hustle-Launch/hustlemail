@@ -1,5 +1,5 @@
 /**
- * CodeMail SMTP Ingress Server.
+ * hustlemail SMTP Ingress Server.
  * Receives inbound email via SMTP protocol:
  * 1. Validates recipient mailbox exists in Convex
  * 2. Parses email content with mailparser
@@ -422,7 +422,7 @@ async function onData(
         const messageInput: MessageInput = {
           domainId: recipient.domainId,
           mailboxId: recipient.mailboxId,
-          messageId: parsed.messageId || `<${Date.now()}.${Math.random().toString(36)}@codemail.dev>`,
+          messageId: parsed.messageId || `<${Date.now()}.${Math.random().toString(36)}@hustlemail.dev>`,
           inReplyTo: parsed.inReplyTo?.toString(),
           references: parsed.references
             ? (Array.isArray(parsed.references) ? parsed.references : [parsed.references])
@@ -480,8 +480,8 @@ async function onData(
 function createServer(): SMTPServer {
   const serverOptions: SMTPServerOptions = {
     // Server identification
-    name: 'codemail-smtp',
-    banner: 'CodeMail SMTP Ingress',
+    name: 'hustlemail-smtp',
+    banner: 'hustlemail SMTP Ingress',
     
     // Size limit
     size: config.maxMessageSize,
@@ -545,7 +545,7 @@ async function main(): Promise<void> {
   console.log('[SMTP] Config loaded, setting log level...');
   setLogLevel(config.logLevel);
   
-  logger.info('Starting CodeMail SMTP server', {
+  logger.info('Starting hustlemail SMTP server', {
     port: config.port,
     host: config.host,
     secure: config.secure,

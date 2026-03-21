@@ -9,11 +9,11 @@ import { requireMailboxAccess } from "./lib/auth";
 
 /**
  * Generates a random selector string for DKIM.
- * @returns A unique selector prefixed with 'codemail'.
+ * @returns A unique selector prefixed with 'hustlemail'.
  */
 function generateSelector(): string {
   const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let result = 'codemail';
+  let result = 'hustlemail';
   for (let i = 0; i < 8; i++) {
     result += chars.charAt(Math.floor(Math.random() * chars.length));
   }

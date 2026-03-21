@@ -12,7 +12,7 @@ import { generateKeyPairSync, createSign } from "node:crypto";
  * @returns Object containing selector, publicKey (base64 DER), and privateKey (PEM).
  */
 export async function generateDKIMKeys(domain: string) {
-  const selector = `codemail${Date.now().toString(36)}`;
+  const selector = `hustlemail${Date.now().toString(36)}`;
 
   const { publicKey, privateKey } = generateKeyPairSync("rsa", {
     modulusLength: 2048,

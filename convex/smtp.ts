@@ -1,6 +1,6 @@
 /**
  * SMTP HTTP Actions.
- * HTTP endpoints called by the @codemail/smtp ingress server.
+ * HTTP endpoints called by the @hustlemail/smtp ingress server.
  * These handle mailbox validation, message storage, and attachment uploads.
  * 
  * SECURITY: All endpoints require SMTP_SHARED_SECRET in Authorization header.

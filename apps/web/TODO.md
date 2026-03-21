@@ -1,4 +1,4 @@
-# CodeMail Web Client - TODO
+# hustlemail Web Client - TODO
 
 ## Design Philosophy
 - **Aesthetic:** Linear/Raycast/Arc inspired - refined, dense, keyboard-first

@@ -109,8 +109,8 @@ Respond with ONLY a JSON object (no markdown, no explanation):
       headers: {
         'Authorization': `Bearer ${config.openrouterApiKey}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'https://codemail.dev',
-        'X-Title': 'CodeMail Spam Filter',
+        'HTTP-Referer': 'https://hustlemail.dev',
+        'X-Title': 'hustlemail Spam Filter',
       },
       body: JSON.stringify({
         model: config.spamModel,

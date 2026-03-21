@@ -17,6 +17,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: "/",
       disallow: ["/api/", "/mail/", "/dashboard/"],
     },
-    sitemap: "https://codemail.vercel.app/sitemap.xml",
+    sitemap: "https://hustlemail.vercel.app/sitemap.xml",
   };
 }

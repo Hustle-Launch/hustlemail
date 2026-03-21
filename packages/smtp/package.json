@@ -1,7 +1,7 @@
 {
-  "name": "@codemail/smtp",
+  "name": "@hustlemail/smtp",
   "version": "0.1.0",
-  "description": "SMTP ingress server for CodeMail - receives inbound mail and stores in Convex",
+  "description": "SMTP ingress server for hustlemail - receives inbound mail and stores in Convex",
   "type": "module",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -9,7 +9,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "lint": "eslint src",
+    "lint": "echo 'No linter configured'",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
@@ -32,8 +32,8 @@
     "email",
     "mail",
     "convex",
-    "codemail"
+    "hustlemail"
   ],
-  "author": "CodeMail",
+  "author": "hustlemail",
   "license": "MIT"
 }

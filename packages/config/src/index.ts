@@ -1,5 +1,5 @@
 /**
- * @codemail/config - Mail configuration schemas and utilities.
+ * @hustlemail/config - Mail configuration schemas and utilities.
  * Provides Zod schemas for validating mail.config.ts files.
  */
 
@@ -219,7 +219,7 @@ export function getRouteRecipients(
  * @returns TypeScript config file content as a string.
  */
 export function generateExampleConfig(domain: string): string {
-  return `import { defineMailConfig } from "@codemail/config";
+  return `import { defineMailConfig } from "@hustlemail/config";
 
 export default defineMailConfig({
   domain: "${domain}",

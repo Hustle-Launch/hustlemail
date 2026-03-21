@@ -1,4 +1,4 @@
-# CodeMail Compliance Report
+# hustlemail Compliance Report
 
 > Audit against HustleStack BUILDING.md standards
 > Generated: 2026-02-13
@@ -7,7 +7,7 @@
 
 ## Executive Summary
 
-CodeMail demonstrates **strong adherence** to core HustleStack conventions, particularly in Clerk auth patterns (route groups, proxy.ts), dark-first theming, and Convex data layer patterns. However, there are gaps in documentation, testing, provider architecture, and some design system rules.
+hustlemail demonstrates **strong adherence** to core HustleStack conventions, particularly in Clerk auth patterns (route groups, proxy.ts), dark-first theming, and Convex data layer patterns. However, there are gaps in documentation, testing, provider architecture, and some design system rules.
 
 | Category | Status | Score |
 |----------|--------|-------|
@@ -26,7 +26,7 @@ CodeMail demonstrates **strong adherence** to core HustleStack conventions, part
 
 ## 1. Current State Summary
 
-### What CodeMail Does Well ✅
+### What hustlemail Does Well ✅
 
 #### Clerk Auth — Follows The 12 Commandments
 - **Route groups**: Uses `app/(private)/` for protected routes ✅
@@ -296,7 +296,7 @@ These should be replaced with Convex queries when the backend is connected.
 
 ## 6. Conclusion
 
-CodeMail is **73% compliant** with HustleStack standards. The major gaps are:
+hustlemail is **73% compliant** with HustleStack standards. The major gaps are:
 
 1. **No tests** — Critical for long-term maintenance
 2. **Missing Clerk wrappers** — Violates "no raw Clerk imports" rule

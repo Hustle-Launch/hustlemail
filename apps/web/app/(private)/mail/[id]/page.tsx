@@ -14,9 +14,9 @@ import { MessageView } from "@/components/mail/message-view";
 const mockMessage = {
   _id: "1",
   from: { name: "GitHub", address: "noreply@github.com" },
-  to: [{ name: "You", address: "you@codemail.dev" }],
+  to: [{ name: "You", address: "you@hustlemail.dev" }],
   cc: [],
-  subject: "[codemail/api] Pull request #42: Add spam detection",
+  subject: "[hustlemail/api] Pull request #42: Add spam detection",
   bodyHtml: `
     <p><strong>mergify[bot]</strong> merged 1 commit into <code>main</code> from <code>feature/spam-detection</code></p>
     
@@ -38,7 +38,7 @@ const mockMessage = {
     
     <hr>
     <p style="color: #666; font-size: 12px;">
-      Reply to this email directly, <a href="https://github.com/codemail/api/pull/42">view it on GitHub</a>, 
+      Reply to this email directly, <a href="https://github.com/hustlemail/api/pull/42">view it on GitHub</a>, 
       or <a href="https://github.com/notifications/unsubscribe">unsubscribe</a>.
     </p>
   `,
@@ -54,9 +54,9 @@ const mockMessage = {
 const mockThreadMessages = [
   {
     _id: "thread-1-msg-1",
-    from: { name: "You", address: "you@codemail.dev" },
+    from: { name: "You", address: "you@hustlemail.dev" },
     to: [{ address: "noreply@github.com" }],
-    subject: "Re: [codemail/api] Pull request #42: Add spam detection",
+    subject: "Re: [hustlemail/api] Pull request #42: Add spam detection",
     bodyHtml: "<p>Opening this PR for spam detection. Let me know if you have any feedback!</p>",
     bodyText: "Opening this PR for spam detection. Let me know if you have any feedback!",
     date: Date.now() - 1000 * 60 * 60 * 2,
@@ -68,8 +68,8 @@ const mockThreadMessages = [
   {
     _id: "thread-1-msg-2",
     from: { name: "alex-reviewer", address: "alex@github.com" },
-    to: [{ address: "you@codemail.dev" }],
-    subject: "Re: [codemail/api] Pull request #42: Add spam detection",
+    to: [{ address: "you@hustlemail.dev" }],
+    subject: "Re: [hustlemail/api] Pull request #42: Add spam detection",
     bodyHtml: `
       <p>Great work! A few comments:</p>
       <ul>

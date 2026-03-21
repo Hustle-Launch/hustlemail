@@ -27,7 +27,7 @@ const mockResults = [
   {
     _id: "search-1",
     from: { name: "GitHub", address: "noreply@github.com" },
-    subject: "[codemail/api] Pull request #42: Add spam detection",
+    subject: "[hustlemail/api] Pull request #42: Add spam detection",
     snippet: "mergify[bot] merged 1 commit into main from feature/spam-detection...",
     date: Date.now() - 1000 * 60 * 15,
     isRead: true,

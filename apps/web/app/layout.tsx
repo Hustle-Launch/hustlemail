@@ -1,5 +1,5 @@
 /**
- * Root layout for the CodeMail application.
+ * Root layout for the hustlemail application.
  * Sets up fonts, metadata, and wraps pages in providers.
  * @module app/layout
  */
@@ -23,26 +23,26 @@ const jetbrainsMono = JetBrains_Mono({
 
 /** Site-wide metadata for SEO and social sharing. */
 export const metadata: Metadata = {
-  metadataBase: new URL("https://codemail.vercel.app"),
+  metadataBase: new URL("https://hustlemail.vercel.app"),
   title: {
-    default: "CodeMail - Email Infrastructure in Your Repo",
-    template: "%s | CodeMail",
+    default: "hustlemail - Email Infrastructure in Your Repo",
+    template: "%s | hustlemail",
   },
   description: "Email infrastructure that lives in your GitHub repo. Config as code, deploy like an app, costs pennies.",
   keywords: ["email", "smtp", "infrastructure", "developer", "api", "typescript"],
-  authors: [{ name: "CodeMail" }],
-  creator: "CodeMail",
+  authors: [{ name: "hustlemail" }],
+  creator: "hustlemail",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://codemail.vercel.app",
-    siteName: "CodeMail",
-    title: "CodeMail - Email Infrastructure in Your Repo",
+    url: "https://hustlemail.vercel.app",
+    siteName: "hustlemail",
+    title: "hustlemail - Email Infrastructure in Your Repo",
     description: "Email infrastructure that lives in your GitHub repo. Config as code, deploy like an app, costs pennies.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "CodeMail - Email Infrastructure in Your Repo",
+    title: "hustlemail - Email Infrastructure in Your Repo",
     description: "Email infrastructure that lives in your GitHub repo. Config as code, deploy like an app, costs pennies.",
   },
   robots: {

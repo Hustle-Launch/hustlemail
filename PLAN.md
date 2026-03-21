@@ -1,4 +1,4 @@
-# CodeMail Development Plan
+# hustlemail Development Plan
 
 ## MVP Scope
 
@@ -39,7 +39,7 @@ The MVP proves the core thesis: **email as code-configured infrastructure**.
 
 ### Monorepo Structure
 ```
-codemail/
+hustlemail/
 ├── apps/
 │   ├── web/              # Next.js dashboard + web mail
 │   └── docs/             # Documentation site
@@ -47,7 +47,7 @@ codemail/
 │   ├── config/           # mail.config.ts parser & types
 │   ├── smtp/             # SMTP ingress server
 │   ├── convex/           # Shared Convex functions
-│   └── cli/              # codemail CLI
+│   └── cli/              # hustlemail CLI
 ├── convex/               # Convex schema & functions
 └── mail.config.ts        # Example config
 ```
@@ -56,7 +56,7 @@ codemail/
 
 ```typescript
 // mail.config.ts
-import { defineMailConfig } from "@codemail/config";
+import { defineMailConfig } from "@hustlemail/config";
 
 export default defineMailConfig({
   domain: "example.com",
@@ -136,7 +136,7 @@ export default defineMailConfig({
 ## Success Criteria
 
 MVP is complete when:
-1. A new user can `codemail setup domain.com` and receive email within 10 minutes
+1. A new user can `hustlemail setup domain.com` and receive email within 10 minutes
 2. Web mail loads inbox in < 2 seconds
 3. New messages appear in real-time (< 1 second)
 4. Outbound mail delivers successfully to Gmail/Outlook

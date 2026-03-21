@@ -1,4 +1,4 @@
-# CodeMail Roadmap
+# hustlemail Roadmap
 
 ## 🎯 Current Focus: MVP
 
@@ -13,8 +13,8 @@
 ### ✅ Foundation
 - [ ] Monorepo setup with Turborepo
 - [ ] Convex schema & auth
-- [ ] Config parser (`@codemail/config`)
-- [ ] CLI scaffold (`@codemail/cli`)
+- [ ] Config parser (`@hustlemail/config`)
+- [ ] CLI scaffold (`@hustlemail/cli`)
 
 ### ✅ Core Email
 - [ ] SMTP ingress server
@@ -63,7 +63,7 @@
 - [ ] Error notifications
 
 ### Developer Experience
-- [ ] `codemail dev` local development mode
+- [ ] `hustlemail dev` local development mode
 - [ ] Config validation in CI
 - [ ] GitHub Action for deploys
 - [ ] Webhook integrations
@@ -114,7 +114,7 @@
 ### White Label
 - [ ] Custom domains for web mail
 - [ ] Branded login pages
-- [ ] Remove CodeMail branding
+- [ ] Remove hustlemail branding
 
 ### Self-Hosted
 - [ ] Docker Compose deployment

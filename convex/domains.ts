@@ -162,13 +162,13 @@ export const getDnsRecords = query({
         host: "@",
         value: `mail.${domain.name}`,
         priority: 10,
-        description: "Routes incoming email to CodeMail",
+        description: "Routes incoming email to hustlemail",
       },
       spf: {
         type: "TXT",
         host: "@",
         value: domain.spfRecord,
-        description: "Authorizes CodeMail to send email for your domain",
+        description: "Authorizes hustlemail to send email for your domain",
       },
       dkim: {
         type: "TXT",
@@ -185,7 +185,7 @@ export const getDnsRecords = query({
       webmail: {
         type: "CNAME",
         host: "mail",
-        value: "codemail.app",
+        value: "hustlemail.app",
         description: "Web mail interface at mail.yourdomain.com",
       },
     };

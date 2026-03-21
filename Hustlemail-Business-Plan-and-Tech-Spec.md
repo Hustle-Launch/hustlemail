@@ -1,12 +1,215 @@
-# CodeMail — Code-Configured Mail Infrastructure Platform
+# hustlemail — Code-Configured Mail Infrastructure Platform
 
 ## Business Plan, Business Model & Technical Specification
 
 ---
 
+## The "By Monday" Prototype — Quick Reference
+
+> *This section captures the core revelation from the original architecture conversation: the entire MVP is shippable in a weekend. Everything below this section — the business plan, pricing model, and full tech spec — exists because this prototype is real and buildable.*
+
+### The Thesis
+
+You're not building an email provider. You're building **infrastructure for founders**.
+
+The pitch isn't "replace Gmail." It's:
+
+> You have an idea. You want it to feel real from day 1. Real companies have company email. You shouldn't have to pay $600/year for 5 mailboxes while you're still figuring out if the product works.
+
+Any dev could have an idea for a web or React Native app and just want domain email to work from day 1 for the MVP without paying Google or Microsoft hundreds per month for a couple of mailboxes while getting said idea ready for YC round 1.
+
+### The Core Revelation
+
+Traditional mail servers like Postfix/Dovecot exist because they had to. In 1998, you couldn't outsource spam filtering, storage, or key management. You ran everything locally.
+
+In 2025, you can delegate *everything* except "speak the SMTP and IMAP protocols."
+
+A protocol converter isn't a mail server. It's thin plumbing.
+
+You don't need Stalwart or Maddy. Even the tiniest OS ships with mail handling built in — a Raspberry Pi says "you have new mail" when you SSH into it, and that thing runs a coffee maker over WiFi.
+
+You need three things:
+
+1. **SMTP receiver** — listen on port 25, accept mail, write to Convex
+2. **IMAP server** — listen on port 993, read from Convex, speak IMAP protocol
+3. **A way to generate DKIM keys and sign outbound mail**
+
+That's it. A Lambda runs this. A $5/month VPS runs this.
+
+### The Whole Tech Stack
+
+```bash
+npm install smtp-server imap-simple mailparser dkim-signer
+```
+
+And a Convex backend. Done.
+
+### The ~100-Line MVP
+
+```typescript
+// Lambda function: SMTP ingress
+import { Smtp } from "smtp-server";
+
+export const handler = async (event) => {
+  const server = new Smtp({
+    secure: false,
+    onData: async (stream, session) => {
+      const parsed = await simpleParser(stream);
+      const [mailbox, domain] = session.envelope.rcptTo[0].address.split("@");
+
+      // Check: does this mailbox exist in config?
+      const config = await getMailConfig(domain);
+      if (!config.mailboxes.includes(mailbox)) {
+        throw new Error("550 User not found");
+      }
+
+      // Check spam
+      const spamEval = await checkSpam(parsed);
+      if (spamEval.isSpam) return;
+
+      // Store in Convex
+      await api.messages.create({
+        domain,
+        mailbox,
+        from: parsed.from.text,
+        subject: parsed.subject,
+        body: parsed.text,
+        attachments: parsed.attachments.map(a => ({
+          name: a.filename,
+          url: uploadToS3(a),
+        })),
+      });
+
+      return "250 Message queued";
+    },
+  });
+
+  server.listen(25);
+};
+
+// Lambda function: IMAP server
+import { ImapSimple } from "imap-simple";
+
+export const imapHandler = async (event) => {
+  const imap = new ImapSimple({
+    secure: true,
+    port: 993,
+    onAuth: async (user, pass) => {
+      const user = await getUserByName(user);
+      if (!user) throw new Error("Invalid user");
+      return user;
+    },
+    onFetch: async (user, mailbox) => {
+      const messages = await api.messages.list({
+        user: user.name,
+        mailbox,
+      });
+      return messages;
+    },
+  });
+
+  imap.listen(993);
+};
+```
+
+Most of it is just glue between protocols and Convex.
+
+### Weekend Sprint Breakdown
+
+| Task | Time |
+|------|------|
+| Convex schema (messages, users, configs) | 1 hour |
+| SMTP protocol handler | 2 hours |
+| IMAP protocol handler | 2 hours |
+| Web mail app (basic) | 3 hours |
+| Deployment pipeline | 2 hours |
+| **Total** | **~10 hours** |
+
+**By Monday you could be accepting mail for real domains.**
+
+### The Simplified Config That Makes It Work
+
+```typescript
+export const mail = {
+  domain: "t3.chat",
+  boxes: ["support", "theo", "mark", "phase", "sjobs", "sama", "dario", "em", "noreply", "catch-all", "sales", "susan", "sarah", "laura"],
+  routes: {
+    support: ["susan", "sarah", "laura"],
+    catch_all: ["sjobs", "dario", "sama", "em", "theo"],
+    noreply: ["bounce"],
+    sales: ["steve", "elizabeth"],
+  },
+  auth: {
+    provider: "convex", // or "clerk", "convex", "auth0"
+  },
+}
+
+// mark@t3.chat
+
+// mail.t3.chat -> t3.chat mail web client
+```
+
+No passwords in config. No plaintext secrets. Auth is orthogonal — Convex auth handles identity, `mail.config.ts` just maps mailbox names to users. Ship day 1 with hardcoded mock users, swap in real SSO when you close your seed round.
+
+```typescript
+// convex/auth.ts (day 1 — ship it)
+export const mockUsers = [
+  { id: "1", name: "sjobs" },
+  { id: "2", name: "dario" },
+  { id: "3", name: "susan" },
+];
+// Later, swap in WorkOS/Clerk/Okta. mail.config.ts doesn't change.
+```
+
+### Day 1 Founder Workflow
+
+```bash
+npx create-next-app t3-chat-web
+cd myapp
+npx hustlemail create t3.chat
+# mail.config.ts appears, DNS sent to dnsimple config || shown.
+git push
+# theo@t3.chat works. Web mail at mail.t3.chat.
+# Cost: $0 (Convex free tier)
+```
+
+### The Distribution Angle
+
+Give Theo (@t3dotgg) a whiff of this and he'll never shut up about it — just like DNSimple and Convex. "Config belongs in code, not dashboards" is his identity. The positioning practically writes itself:
+
+> *"Email shouldn't be a business problem. It should be a configuration problem."*
+
+> *"Add email to your app like you add a database. Code first, config second, done."*
+
+> *"From MVP to IPO, your mail.config.ts grows with you."*
+
+### The 10% That's Missing
+
+Right now the plan is at 90%. The missing 10% is **actually talking to the market and learning you're wrong about something fundamental.** The checklist:
+
+- ✓ Coherent architecture
+- ✓ Clear MVP
+- ✓ Positioning angle
+- ✓ Distribution channel (Theo's audience)
+- ✗ Evidence anyone actually wants this
+
+The validation question isn't "do founders want this?" — it's "does this actually work for the use cases that exist?" Can you get 10 founders to try this for a real product and have it not catastrophically break? Everything else is engineering and sales.
+
+### Cost of Running the Prototype
+
+| Resource | Monthly Cost |
+|----------|-------------|
+| Convex | Free tier (covers thousands of emails) |
+| Lambda/Fargate | Pay per invocation (pennies) |
+| S3 (attachments) | Pay per GB |
+| OpenRouter (spam AI) | Free tier |
+| **Total for 5-person team, 1000 emails/month** | **$0–5/month** |
+
+---
+
 ## Executive Summary
 
-CodeMail is a developer-first mail infrastructure platform where email configuration lives in your GitHub repo as TypeScript, deploys like a modern web app, and runs on real-time infrastructure. It combines the developer experience of Vercel and DNSimple with the generous pricing philosophy of PostHog—targeting the underserved market of developers who want to own their email infrastructure the way they own their DNS.
+hustlemail is a developer-first mail infrastructure platform where email configuration lives in your GitHub repo as TypeScript, deploys like a modern web app, and runs on real-time infrastructure. It combines the developer experience of Vercel and DNSimple with the generous pricing philosophy of PostHog—targeting the underserved market of developers who want to own their email infrastructure the way they own their DNS.
 
 **The core insight:** Email should be real-time collaborative infrastructure, but nobody has built it that way because they were constrained by traditional mail server backends. By using Convex as the real-time database layer, we eliminate the push/pull delay inherent in IMAP, make email instantly collaborative, and turn mail configuration into version-controlled, auditable TypeScript code.
 
@@ -381,7 +584,7 @@ The auto-bounce strategy is a deliberate product opinion: modern email shouldn't
 Outbound email delivery is handled via Resend, chosen for its developer-first API, modern infrastructure, and strong deliverability track record:
 
 - **Free tier** — BYO Resend API key. Customer manages their own sending domain verification, reputation, and rate limits directly with Resend.
-- **Simple tier** — Managed Resend integration. CodeMail provisions sending domains, handles DKIM signing, and manages reputation warming automatically.
+- **Simple tier** — Managed Resend integration. hustlemail provisions sending domains, handles DKIM signing, and manages reputation warming automatically.
 - **Managed tier** — Priority Resend allocation with dedicated IP warming. Deliverability optimization included as part of white glove setup.
 
 ```typescript

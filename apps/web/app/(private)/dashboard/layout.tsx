@@ -49,7 +49,7 @@ export default function DashboardLayout({
           <div className="flex items-center gap-6">
             <Link href="/" className="flex items-center gap-2">
               <Envelope className="h-6 w-6 text-indigo-500" />
-              <span className="font-semibold text-white">CodeMail</span>
+              <span className="font-semibold text-white">hustlemail</span>
             </Link>
             <span className="text-sm text-zinc-500">Dashboard</span>
           </div>
