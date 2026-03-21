@@ -306,7 +306,13 @@ program
 
     if (dnsProvider === "cloudflare") {
       // Check for Cloudflare API Token in environment
-      cfApiToken = process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOKEN || "";
+      // Also check CLOUDFLARE_GLOBAL_API_KEY as fallback (may contain API token)
+      cfApiToken = 
+        process.env.CLOUDFLARE_API_TOKEN || 
+        process.env.CF_API_TOKEN || 
+        process.env.CLOUDFLARE_GLOBAL_API_KEY ||
+        process.env.CF_API_KEY ||
+        "";
 
       if (!cfApiToken) {
         const tokenInput = await p.text({
