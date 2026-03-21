@@ -7,7 +7,7 @@
 import { Command } from "commander";
 import * as p from "@clack/prompts";
 import chalk from "chalk";
-import { writeFileSync, existsSync } from "fs";
+import { writeFileSync, existsSync, readFileSync } from "fs";
 import { join } from "path";
 import { promises as dns } from "dns";
 import * as net from "net";
@@ -81,15 +81,15 @@ ${chalk.bold("Add these DNS records to your domain:")}
 
 ${chalk.cyan("MX Record")}
   Host: @
-  Value: mail.${domain}
+  Value: inbound-smtp.us-east-1.amazonaws.com
   Priority: 10
 
 ${chalk.cyan("TXT Record (SPF)")}
   Host: @
-  Value: v=spf1 include:_spf.resend.com ~all
+  Value: v=spf1 include:amazonses.com ~all
 
 ${chalk.cyan("TXT Record (DKIM)")}
-  Host: hustlemail._domainkey
+  Host: resend._domainkey
   Value: (will be generated on deploy)
 
 ${chalk.cyan("CNAME Record (Web Mail)")}
@@ -103,6 +103,82 @@ ${chalk.cyan("CNAME Record (Web Mail)")}
       `${chalk.green("✓")} Run ${chalk.cyan("hustlemail deploy")} after adding DNS records`
     );
   });
+
+/**
+ * Cloudflare DNS helper - creates DNS records via Cloudflare API.
+ */
+async function createCloudflareRecord(
+  zoneId: string,
+  email: string,
+  apiKey: string,
+  record: { type: string; name: string; content: string; priority?: number; proxied?: boolean }
+): Promise<{ success: boolean; error?: string; id?: string }> {
+  const { execSync } = require("child_process");
+  
+  const data: Record<string, any> = {
+    type: record.type,
+    name: record.name,
+    content: record.content,
+    ttl: 1,
+    proxied: record.proxied ?? false,
+  };
+  
+  if (record.priority !== undefined) {
+    data.priority = record.priority;
+  }
+
+  try {
+    const response = execSync(
+      `curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records" \
+        -H "X-Auth-Email: ${email}" \
+        -H "X-Auth-Key: ${apiKey}" \
+        -H "Content-Type: application/json" \
+        --data '${JSON.stringify(data)}'`,
+      { encoding: "utf-8" }
+    );
+    
+    const result = JSON.parse(response);
+    if (result.success) {
+      return { success: true, id: result.result?.id };
+    } else {
+      return { success: false, error: result.errors?.[0]?.message || "Unknown error" };
+    }
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
+
+/**
+ * Get Cloudflare zone ID for a domain.
+ */
+async function getCloudflareZoneId(
+  domain: string,
+  email: string,
+  apiKey: string
+): Promise<{ success: boolean; zoneId?: string; error?: string }> {
+  const { execSync } = require("child_process");
+  
+  try {
+    const response = execSync(
+      `curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=${domain}" \
+        -H "X-Auth-Email: ${email}" \
+        -H "X-Auth-Key: ${apiKey}" \
+        -H "Content-Type: application/json"`,
+      { encoding: "utf-8" }
+    );
+    
+    const result = JSON.parse(response);
+    if (result.success && result.result?.[0]?.id) {
+      return { success: true, zoneId: result.result[0].id };
+    } else if (result.errors?.[0]?.code === 9103) {
+      return { success: false, error: "Invalid email or API key" };
+    } else {
+      return { success: false, error: result.errors?.[0]?.message || "Zone not found" };
+    }
+  } catch (e: any) {
+    return { success: false, error: e.message };
+  }
+}
 
 /**
  * Deploy command - full deployment flow for hustlemail.
@@ -131,6 +207,7 @@ program
     p.intro(chalk.bgHex("#FF6B35").black(" hustlemail Deploy "));
 
     const s = p.spinner();
+    const { execSync } = require("child_process");
 
     // Step 1: Check for mail.config.ts
     const configPath = join(process.cwd(), "mail.config.ts");
@@ -192,9 +269,7 @@ program
       // Parse existing config to get domain
       s.start("Validating configuration");
       try {
-        // In a real implementation, we'd dynamically import the config
-        // For now, we'll parse it from the file
-        const configContent = require("fs").readFileSync(configPath, "utf-8");
+        const configContent = readFileSync(configPath, "utf-8");
         const domainMatch = configContent.match(/domain:\s*["']([^"']+)["']/);
         domain = domainMatch ? domainMatch[1] : "";
         
@@ -226,11 +301,70 @@ program
       process.exit(0);
     }
 
+    // Cloudflare credentials (only needed if cloudflare selected)
+    let cfEmail = "";
+    let cfApiKey = "";
+    let cfZoneId = "";
+
+    if (dnsProvider === "cloudflare") {
+      // Check for Cloudflare credentials
+      cfEmail = process.env.CLOUDFLARE_EMAIL || process.env.CF_EMAIL || "";
+      cfApiKey = process.env.CLOUDFLARE_GLOBAL_API_KEY || process.env.CLOUDFLARE_API_KEY || process.env.CF_API_KEY || "";
+
+      if (!cfEmail) {
+        const emailInput = await p.text({
+          message: "Cloudflare account email:",
+          placeholder: "you@example.com",
+          validate: (v) => v && v.includes("@") ? undefined : "Valid email required",
+        });
+        if (p.isCancel(emailInput)) {
+          p.cancel("Deploy cancelled");
+          process.exit(0);
+        }
+        cfEmail = emailInput as string;
+      } else {
+        console.log(chalk.dim(`  → Using Cloudflare email: ${cfEmail}`));
+      }
+
+      if (!cfApiKey) {
+        const apiKeyInput = await p.text({
+          message: "Cloudflare Global API Key:",
+          placeholder: "xxxxxx...",
+          validate: (v) => v?.length >= 30 ? undefined : "API key appears too short",
+        });
+        if (p.isCancel(apiKeyInput)) {
+          p.cancel("Deploy cancelled");
+          process.exit(0);
+        }
+        cfApiKey = apiKeyInput as string;
+      } else {
+        console.log(chalk.dim(`  → Using Cloudflare API key from environment`));
+      }
+
+      // Validate and get zone ID
+      s.start("Validating Cloudflare credentials");
+      const zoneResult = await getCloudflareZoneId(domain, cfEmail, cfApiKey);
+      if (!zoneResult.success) {
+        s.stop("Cloudflare authentication failed");
+        console.log(chalk.red(`  Error: ${zoneResult.error}`));
+        const proceed = await p.confirm({
+          message: "Continue with manual DNS setup?",
+          initialValue: true,
+        });
+        if (!proceed || p.isCancel(proceed)) {
+          p.cancel("Deploy cancelled");
+          process.exit(1);
+        }
+      } else {
+        cfZoneId = zoneResult.zoneId!;
+        s.stop(`Found Cloudflare zone: ${cfZoneId}`);
+      }
+    }
+
     // Step 5: Check for resend CLI
     s.start("Checking for Resend CLI");
     let hasResendCli = false;
     try {
-      const { execSync } = require("child_process");
       execSync("resend --version", { stdio: "pipe" });
       hasResendCli = true;
       s.stop("Resend CLI found");
@@ -250,7 +384,6 @@ program
       if (installResend) {
         s.start("Installing Resend CLI");
         try {
-          const { execSync } = require("child_process");
           execSync("npm install -g resend", { stdio: "pipe" });
           hasResendCli = true;
           s.stop("Resend CLI installed");
@@ -282,9 +415,7 @@ program
 
       // Save to .env
       const envPath = join(process.cwd(), ".env");
-      const envContent = existsSync(envPath) 
-        ? require("fs").readFileSync(envPath, "utf-8")
-        : "";
+      const envContent = existsSync(envPath) ? readFileSync(envPath, "utf-8") : "";
       
       if (!envContent.includes("RESEND_API_KEY")) {
         require("fs").appendFileSync(envPath, `\nRESEND_API_KEY=${resendApiKey}\n`);
@@ -295,28 +426,97 @@ program
     }
 
     // Step 7: Create domain in Resend
+    let resendDomainId = "";
+    let dkimKey = "";
+    
     s.start("Configuring domain in Resend");
     if (hasResendCli) {
       try {
-        const { execSync } = require("child_process");
         // Check if domain exists
-        const domains = execSync(`RESEND_API_KEY=${resendApiKey} resend domains list --json`, { 
+        const domainsJson = execSync(`RESEND_API_KEY=${resendApiKey} resend domains list --json`, { 
           stdio: "pipe",
           encoding: "utf-8"
         });
         
-        const domainList = JSON.parse(domains);
+        // Handle both array and object with data property
+        let domainList: any[];
+        const parsed = JSON.parse(domainsJson);
+        if (Array.isArray(parsed)) {
+          domainList = parsed;
+        } else if (parsed.data && Array.isArray(parsed.data)) {
+          domainList = parsed.data;
+        } else {
+          domainList = [];
+        }
+        
         const existingDomain = domainList.find((d: any) => d.name === domain);
         
         if (existingDomain) {
+          resendDomainId = existingDomain.id;
           s.stop(`Domain ${domain} already configured in Resend`);
         } else {
-          // Create domain
-          execSync(`RESEND_API_KEY=${resendApiKey} resend domains add ${domain}`, { stdio: "pipe" });
-          s.stop(`Created domain ${domain} in Resend`);
+          // Create domain using correct syntax: resend domains create --name
+          try {
+            const createResult = execSync(
+              `RESEND_API_KEY=${resendApiKey} resend domains create --name ${domain} --region us-east-1 --json`,
+              { stdio: "pipe", encoding: "utf-8" }
+            );
+            const created = JSON.parse(createResult);
+            if (created.id) {
+              resendDomainId = created.id;
+              // Get DNS records from response
+              if (created.records) {
+                const dkimRecord = created.records.find((r: any) => r.record === "DKIM");
+                if (dkimRecord) {
+                  dkimKey = dkimRecord.value;
+                }
+              }
+              s.stop(`Created domain ${domain} in Resend`);
+            } else if (created.error) {
+              throw new Error(created.error.message || "Failed to create domain");
+            }
+          } catch (createErr: any) {
+            // Check for plan limit error
+            const errStr = createErr.message || createErr.toString();
+            if (errStr.includes("plan includes") || errStr.includes("Upgrade to add more")) {
+              s.stop("Resend plan limit reached");
+              console.log(chalk.yellow("  → Your Resend plan limits domains. Options:"));
+              console.log(chalk.yellow("    1. Delete an existing domain in Resend dashboard"));
+              console.log(chalk.yellow("    2. Upgrade your Resend plan"));
+              
+              const proceed = await p.confirm({
+                message: "Continue without Resend domain setup?",
+                initialValue: false,
+              });
+              if (!proceed || p.isCancel(proceed)) {
+                p.cancel("Deploy cancelled - resolve Resend domain limit first");
+                process.exit(1);
+              }
+            } else {
+              throw createErr;
+            }
+          }
         }
-      } catch (e) {
+        
+        // If we have a domain ID but no DKIM key, fetch it
+        if (resendDomainId && !dkimKey) {
+          try {
+            const domainInfo = execSync(
+              `RESEND_API_KEY=${resendApiKey} resend domains get ${resendDomainId} --json`,
+              { stdio: "pipe", encoding: "utf-8" }
+            );
+            const info = JSON.parse(domainInfo);
+            const dkimRecord = info.records?.find((r: any) => r.record === "DKIM");
+            if (dkimRecord) {
+              dkimKey = dkimRecord.value;
+            }
+          } catch {
+            // Non-fatal
+          }
+        }
+      } catch (e: any) {
         s.stop("Could not configure domain automatically");
+        console.log(chalk.yellow(`  → Error: ${e.message}`));
         console.log(chalk.yellow("  → Configure domain manually at https://resend.com/domains"));
       }
     } else {
@@ -325,32 +525,75 @@ program
     }
 
     // Step 8-9: DNS records
-    const dnsRecords = `
-${chalk.bold("Required DNS Records:")}
+    // For Resend, we need these records:
+    // 1. DKIM at resend._domainkey (TXT)
+    // 2. SPF MX at send subdomain
+    // 3. SPF TXT at send subdomain
+    // 4. (Optional) MX at root for receiving
+    // 5. (Optional) Root SPF
+    // 6. (Optional) DMARC
+    // 7. Webmail CNAME
 
-${chalk.cyan("MX Record")}
-  Host:     @
-  Value:    mail.${domain}
-  Priority: 10
+    const dnsRecords = [
+      { type: "TXT", name: "resend._domainkey", content: dkimKey || "(get from Resend dashboard)", description: "DKIM" },
+      { type: "MX", name: "send", content: "feedback-smtp.us-east-1.amazonses.com", priority: 10, description: "SPF MX" },
+      { type: "TXT", name: "send", content: "v=spf1 include:amazonses.com ~all", description: "SPF TXT" },
+      { type: "MX", name: "@", content: "inbound-smtp.us-east-1.amazonaws.com", priority: 10, description: "Inbound MX (for receiving)" },
+      { type: "TXT", name: "@", content: "v=spf1 include:amazonses.com include:_spf.resend.com ~all", description: "Root SPF" },
+      { type: "TXT", name: "_dmarc", content: `v=DMARC1; p=none; rua=mailto:dmarc@${domain}`, description: "DMARC" },
+    ];
 
-${chalk.cyan("TXT Record (SPF)")}
-  Host:     @
-  Value:    v=spf1 include:_spf.resend.com ~all
+    if (dnsProvider === "cloudflare" && cfZoneId) {
+      s.start("Configuring DNS records via Cloudflare");
+      let successCount = 0;
+      let failCount = 0;
 
-${chalk.cyan("TXT Record (DKIM)")}
-  Host:     hustlemail._domainkey
-  Value:    (get from Resend dashboard after domain verification)
-`;
+      for (const record of dnsRecords) {
+        const result = await createCloudflareRecord(cfZoneId, cfEmail, cfApiKey, {
+          type: record.type,
+          name: record.name,
+          content: record.content,
+          priority: record.priority,
+        });
 
-    if (dnsProvider !== "manual") {
-      // Attempt programmatic DNS setup
+        if (result.success) {
+          successCount++;
+          console.log(chalk.dim(`  ✓ ${record.description}: ${record.name}`));
+        } else {
+          // Check if it's a duplicate error (already exists)
+          if (result.error?.includes("already exists") || result.error?.includes("81057")) {
+            console.log(chalk.dim(`  ○ ${record.description}: already exists`));
+          } else {
+            failCount++;
+            console.log(chalk.yellow(`  ✗ ${record.description}: ${result.error}`));
+          }
+        }
+      }
+
+      s.stop(`DNS records: ${successCount} created, ${failCount} failed`);
+    } else if (dnsProvider !== "manual") {
       s.start(`Attempting to configure DNS via ${dnsProvider}`);
       await sleep(1000);
-      s.stop("Automatic DNS configuration not yet supported");
-      console.log(chalk.yellow("  → Configure DNS records manually:"));
-      console.log(dnsRecords);
+      s.stop("Automatic DNS not yet supported for this provider");
+      
+      console.log(chalk.yellow("\n  Add these DNS records manually:\n"));
+      for (const record of dnsRecords) {
+        console.log(chalk.cyan(`  ${record.description}`));
+        console.log(`    Type:  ${record.type}`);
+        console.log(`    Name:  ${record.name}`);
+        console.log(`    Value: ${record.content}`);
+        if (record.priority) {
+          console.log(`    Priority: ${record.priority}`);
+        }
+        console.log();
+      }
     } else {
-      p.note(dnsRecords, "DNS Configuration");
+      p.note(
+        dnsRecords.map(r => 
+          `${chalk.cyan(r.description)}\n  Type: ${r.type}\n  Name: ${r.name}\n  Value: ${r.content}${r.priority ? `\n  Priority: ${r.priority}` : ""}`
+        ).join("\n\n"),
+        "DNS Configuration"
+      );
     }
 
     // Step 10-11: Webmail subdomain
@@ -365,7 +608,23 @@ ${chalk.cyan("TXT Record (DKIM)")}
       process.exit(0);
     }
 
-    console.log(chalk.dim(`  → Add CNAME: ${webmailSubdomain} → hustlemail.app`));
+    // Add webmail CNAME
+    if (dnsProvider === "cloudflare" && cfZoneId) {
+      const webmailName = (webmailSubdomain as string).replace(`.${domain}`, "");
+      const result = await createCloudflareRecord(cfZoneId, cfEmail, cfApiKey, {
+        type: "CNAME",
+        name: webmailName,
+        content: "hustlemail.app",
+        proxied: false,
+      });
+      if (result.success) {
+        console.log(chalk.dim(`  ✓ Webmail CNAME: ${webmailSubdomain} → hustlemail.app`));
+      } else if (!result.error?.includes("already exists")) {
+        console.log(chalk.yellow(`  → Add CNAME manually: ${webmailSubdomain} → hustlemail.app`));
+      }
+    } else {
+      console.log(chalk.dim(`  → Add CNAME: ${webmailSubdomain} → hustlemail.app`));
+    }
 
     // Step 12: Initial box name
     const initialBox = await p.text({
@@ -385,26 +644,41 @@ ${chalk.cyan("TXT Record (DKIM)")}
 
     console.log(chalk.green(`  ✓ ${initialBox}@${domain} will be created`));
 
+    // Trigger verification if we have a domain ID
+    if (resendDomainId && hasResendCli) {
+      s.start("Triggering domain verification");
+      try {
+        execSync(`RESEND_API_KEY=${resendApiKey} resend domains verify ${resendDomainId}`, { stdio: "pipe" });
+        s.stop("Verification triggered");
+        console.log(chalk.dim("  → DNS changes may take a few minutes to propagate"));
+      } catch {
+        s.stop("Could not trigger verification");
+      }
+    }
+
     // Step 13: Send test email
     s.start("Sending test email");
     if (hasResendCli && resendApiKey) {
       try {
-        const { execSync } = require("child_process");
+        // Wait a moment for DNS
+        await sleep(2000);
+        
         execSync(
-          `RESEND_API_KEY=${resendApiKey} resend emails send --from "onboarding@resend.dev" --to "${initialBox}@${domain}" --subject "hustlemail test" --text "Your email is working!"`,
+          `RESEND_API_KEY=${resendApiKey} resend emails send --from "${initialBox}@${domain}" --to "${initialBox}@${domain}" --subject "hustlemail test" --text "Your email is working!"`,
           { stdio: "pipe" }
         );
         s.stop("Test email sent");
-      } catch (e) {
-        s.stop("Could not send test email (domain may need verification first)");
+      } catch (e: any) {
+        s.stop("Could not send test email");
+        if (e.message?.includes("not verified")) {
+          console.log(chalk.yellow("  → Domain needs verification first"));
+        } else {
+          console.log(chalk.yellow("  → You can send a test email after DNS propagates"));
+        }
       }
     } else {
       s.stop("Skipping (no Resend CLI)");
     }
-
-    // Step 14: Listen for incoming (just show instructions for now)
-    console.log(chalk.dim("\n  To verify incoming mail:"));
-    console.log(chalk.dim(`  resend emails receiving list --limit 10`));
 
     // Step 15: Success
     p.outro(`
@@ -414,9 +688,9 @@ ${chalk.bold("Your email:")} ${initialBox}@${domain}
 ${chalk.bold("Webmail:")} https://${webmailSubdomain}
 
 ${chalk.dim("Next steps:")}
-  1. Verify DNS records are propagated (may take up to 48 hours)
-  2. Visit your webmail to start sending and receiving
-  3. Run ${chalk.cyan("hustlemail test " + domain)} to verify setup
+  1. Wait for DNS propagation (usually 5-15 minutes)
+  2. Verify domain status: ${chalk.cyan(`hustlemail status`)}
+  3. Run tests: ${chalk.cyan(`hustlemail test ${domain}`)}
 `);
   });
 
@@ -429,24 +703,78 @@ program
   .action(async () => {
     p.intro(chalk.bgHex("#FF6B35").black(" hustlemail Status "));
 
+    const configPath = join(process.cwd(), "mail.config.ts");
+    if (!existsSync(configPath)) {
+      p.cancel("No mail.config.ts found. Run `hustlemail setup` first.");
+      process.exit(1);
+    }
+
+    const configContent = readFileSync(configPath, "utf-8");
+    const domainMatch = configContent.match(/domain:\s*["']([^"']+)["']/);
+    const domain = domainMatch ? domainMatch[1] : "unknown";
+
     const s = p.spinner();
     s.start("Checking domain status");
-    await sleep(500);
+
+    // Check Resend status if API key available
+    let resendStatus = "unknown";
+    const resendApiKey = process.env.RESEND_API_KEY;
+    
+    if (resendApiKey) {
+      try {
+        const { execSync } = require("child_process");
+        const domainsJson = execSync(`RESEND_API_KEY=${resendApiKey} resend domains list --json`, { 
+          stdio: "pipe",
+          encoding: "utf-8"
+        });
+        const parsed = JSON.parse(domainsJson);
+        const domainList = Array.isArray(parsed) ? parsed : (parsed.data || []);
+        const domainInfo = domainList.find((d: any) => d.name === domain);
+        if (domainInfo) {
+          resendStatus = domainInfo.status;
+        }
+      } catch {
+        // Non-fatal
+      }
+    }
+
     s.stop("Status retrieved");
 
+    const statusColor = resendStatus === "verified" ? chalk.green : (resendStatus === "pending" ? chalk.yellow : chalk.red);
+    const statusIcon = resendStatus === "verified" ? "●" : (resendStatus === "pending" ? "○" : "✗");
+
     console.log(`
-${chalk.bold("Domain:")} example.com
-${chalk.bold("Status:")} ${chalk.green("● Active")}
-${chalk.bold("Mailboxes:")} 3
-${chalk.bold("Messages today:")} 47
-${chalk.bold("Spam blocked:")} 12
+${chalk.bold("Domain:")} ${domain}
+${chalk.bold("Status:")} ${statusColor(`${statusIcon} ${resendStatus.charAt(0).toUpperCase() + resendStatus.slice(1)}`)}
 
 ${chalk.bold("DNS Records:")}
-  MX:    ${chalk.green("✓")} Configured
-  SPF:   ${chalk.green("✓")} Configured
-  DKIM:  ${chalk.green("✓")} Configured
-  DMARC: ${chalk.yellow("○")} Optional (not set)
 `);
+
+    // Quick DNS checks
+    const checks = [
+      { name: "MX", check: async () => (await dns.resolveMx(domain)).length > 0 },
+      { name: "SPF", check: async () => {
+        const txt = await dns.resolveTxt(domain);
+        return txt.flat().some(r => r.toLowerCase().startsWith("v=spf1"));
+      }},
+      { name: "DKIM", check: async () => {
+        const txt = await dns.resolveTxt(`resend._domainkey.${domain}`);
+        return txt.flat().some(r => r.includes("DKIM1") || r.startsWith("p="));
+      }},
+      { name: "DMARC", check: async () => {
+        const txt = await dns.resolveTxt(`_dmarc.${domain}`);
+        return txt.flat().some(r => r.toLowerCase().startsWith("v=dmarc1"));
+      }},
+    ];
+
+    for (const { name, check } of checks) {
+      try {
+        const ok = await check();
+        console.log(`  ${name}:    ${ok ? chalk.green("✓") : chalk.yellow("○")} ${ok ? "Configured" : "Not set"}`);
+      } catch {
+        console.log(`  ${name}:    ${chalk.red("✗")} Not found`);
+      }
+    }
   });
 
 /**
@@ -463,31 +791,46 @@ program
       process.exit(1);
     }
 
-    console.log(`
-${chalk.bold.underline("Required DNS Records")}
+    const configContent = readFileSync(configPath, "utf-8");
+    const domainMatch = configContent.match(/domain:\s*["']([^"']+)["']/);
+    const domain = domainMatch ? domainMatch[1] : "yourdomain.com";
 
-${chalk.cyan("1. MX Record")} (routes incoming email)
+    console.log(`
+${chalk.bold.underline("Required DNS Records for " + domain)}
+
+${chalk.cyan("1. DKIM Record")} (email signing)
+   Type:     TXT
+   Host:     resend._domainkey
+   Value:    p=<your-public-key> (get from Resend dashboard)
+
+${chalk.cyan("2. SPF MX Record")} (Resend bounce handling)
    Type:     MX
-   Host:     @
-   Value:    mail.yourdomain.com
+   Host:     send
+   Value:    feedback-smtp.us-east-1.amazonses.com
    Priority: 10
 
-${chalk.cyan("2. SPF Record")} (authorizes sending)
+${chalk.cyan("3. SPF TXT Record")} (authorizes sending)
+   Type:     TXT
+   Host:     send
+   Value:    v=spf1 include:amazonses.com ~all
+
+${chalk.cyan("4. Root MX Record")} (routes incoming email)
+   Type:     MX
+   Host:     @
+   Value:    inbound-smtp.us-east-1.amazonaws.com
+   Priority: 10
+
+${chalk.cyan("5. Root SPF Record")} (authorizes sending from root domain)
    Type:     TXT
    Host:     @
-   Value:    v=spf1 include:_spf.resend.com ~all
+   Value:    v=spf1 include:amazonses.com ~all
 
-${chalk.cyan("3. DKIM Record")} (email signing)
-   Type:     TXT
-   Host:     hustlemail._domainkey
-   Value:    v=DKIM1; k=rsa; p=<your-public-key>
-
-${chalk.cyan("4. DMARC Record")} (optional but recommended)
+${chalk.cyan("6. DMARC Record")} (recommended)
    Type:     TXT
    Host:     _dmarc
-   Value:    v=DMARC1; p=none; rua=mailto:dmarc@yourdomain.com
+   Value:    v=DMARC1; p=none; rua=mailto:dmarc@${domain}
 
-${chalk.cyan("5. CNAME Record")} (web mail interface)
+${chalk.cyan("7. CNAME Record")} (web mail interface)
    Type:     CNAME
    Host:     mail
    Value:    hustlemail.app
@@ -501,50 +844,70 @@ ${chalk.dim("Run `hustlemail verify` after adding these records.")}
  */
 program
   .command("test <domain>")
-  .description("Run DNS + SMTP reachability checks for a domain")
-  .action(async (domain: string) => {
+  .description("Run DNS + email provider checks for a domain")
+  .option("--provider <provider>", "Email provider (resend)", "resend")
+  .action(async (domain: string, options: { provider: string }) => {
     p.intro(chalk.bgHex("#FF6B35").black(" hustlemail Test "));
 
     const failures: string[] = [];
+    const warnings: string[] = [];
     const pass = (msg: string) => console.log(`${chalk.green("✓")} ${msg}`);
     const fail = (msg: string) => {
       failures.push(msg);
       console.log(`${chalk.red("✗")} ${msg}`);
     };
+    const warn = (msg: string) => {
+      warnings.push(msg);
+      console.log(`${chalk.yellow("○")} ${msg}`);
+    };
 
     // MX
     try {
       const mx = await dns.resolveMx(domain);
-      if (mx.length === 0) fail(`MX record missing for ${domain} (add MX: mail.${domain} priority 10)`);
+      if (mx.length === 0) fail(`MX record missing for ${domain}`);
       else {
         const top = mx.sort((a, b) => a.priority - b.priority)[0];
         pass(`MX record found: ${top.exchange} (priority ${top.priority})`);
       }
     } catch {
-      fail(`MX lookup failed for ${domain} (add MX: mail.${domain} priority 10)`);
+      fail(`MX lookup failed for ${domain}`);
     }
 
-    // SPF
+    // SPF - accept both Resend and Amazon SES includes
     try {
       const txt = await dns.resolveTxt(domain);
       const rows = txt.map((r) => r.join(""));
       const spf = rows.find((r) => r.toLowerCase().startsWith("v=spf1"));
-      if (!spf) fail(`SPF missing (add TXT @: v=spf1 include:_spf.resend.com ~all)`);
-      else pass(`SPF record found`);
+      if (!spf) {
+        fail(`SPF missing (add TXT @: v=spf1 include:amazonses.com ~all)`);
+      } else if (spf.includes("amazonses.com") || spf.includes("_spf.resend.com") || spf.includes("resend.com")) {
+        pass(`SPF record found`);
+      } else {
+        warn(`SPF found but may need Resend/SES include: ${spf.substring(0, 60)}...`);
+      }
     } catch {
-      fail(`SPF lookup failed (add TXT @: v=spf1 include:_spf.resend.com ~all)`);
+      fail(`SPF lookup failed`);
     }
 
-    // DKIM (selector: hustlemail)
-    const dkimHost = `hustlemail._domainkey.${domain}`;
-    try {
-      const txt = await dns.resolveTxt(dkimHost);
-      const rows = txt.map((r) => r.join(""));
-      const dkim = rows.find((r) => /v=DKIM1/i.test(r));
-      if (!dkim) fail(`DKIM missing at ${dkimHost} (publish TXT with v=DKIM1; k=rsa; p=...)`);
-      else pass(`DKIM key found at ${dkimHost}`);
-    } catch {
-      fail(`DKIM lookup failed at ${dkimHost} (publish TXT with v=DKIM1; k=rsa; p=...)`);
+    // DKIM - check both resend._domainkey and hustlemail._domainkey
+    let dkimFound = false;
+    for (const selector of ["resend", "hustlemail"]) {
+      const dkimHost = `${selector}._domainkey.${domain}`;
+      try {
+        const txt = await dns.resolveTxt(dkimHost);
+        const rows = txt.map((r) => r.join(""));
+        const dkim = rows.find((r) => /DKIM1/i.test(r) || r.startsWith("p="));
+        if (dkim) {
+          pass(`DKIM key found at ${dkimHost}`);
+          dkimFound = true;
+          break;
+        }
+      } catch {
+        // Try next selector
+      }
+    }
+    if (!dkimFound) {
+      fail(`DKIM not found at resend._domainkey.${domain} or hustlemail._domainkey.${domain}`);
     }
 
     // DMARC
@@ -553,26 +916,61 @@ program
       const txt = await dns.resolveTxt(dmarcHost);
       const rows = txt.map((r) => r.join(""));
       const dmarc = rows.find((r) => /v=DMARC1/i.test(r));
-      if (!dmarc) fail(`DMARC missing (add TXT ${dmarcHost}: v=DMARC1; p=none; rua=mailto:dmarc@${domain})`);
+      if (!dmarc) warn(`DMARC missing (recommended: add TXT ${dmarcHost}: v=DMARC1; p=none)`);
       else pass(`DMARC policy found`);
     } catch {
-      fail(`DMARC lookup failed (add TXT ${dmarcHost}: v=DMARC1; p=none; rua=mailto:dmarc@${domain})`);
+      warn(`DMARC not set (recommended for email deliverability)`);
     }
 
-    // SMTP reachability (port 25)
-    const smtpHost = `mail.${domain}`;
-    const open = await checkTcpPort(smtpHost, 25, 5000);
-    if (open) pass(`SMTP reachable on ${smtpHost}:25`);
-    else fail(`SMTP not reachable on ${smtpHost}:25 (check DNS A/AAAA, firewall, ISP/Fly port 25)`);
+    // Resend domain verification status (instead of SMTP port check)
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (resendApiKey && options.provider === "resend") {
+      try {
+        const { execSync } = require("child_process");
+        const domainsJson = execSync(`RESEND_API_KEY=${resendApiKey} resend domains list --json`, { 
+          stdio: "pipe",
+          encoding: "utf-8"
+        });
+        const parsed = JSON.parse(domainsJson);
+        const domainList = Array.isArray(parsed) ? parsed : (parsed.data || []);
+        const domainInfo = domainList.find((d: any) => d.name === domain);
+        
+        if (domainInfo) {
+          if (domainInfo.status === "verified") {
+            pass(`Resend domain verified`);
+          } else {
+            fail(`Resend domain status: ${domainInfo.status} (run: resend domains verify ${domainInfo.id})`);
+          }
+        } else {
+          fail(`Domain ${domain} not found in Resend (run: hustlemail deploy)`);
+        }
+      } catch (e) {
+        warn(`Could not check Resend status (set RESEND_API_KEY)`);
+      }
+    } else {
+      // Skip SMTP check for Resend - it's not relevant
+      console.log(chalk.dim("  (SMTP port check skipped - not required for Resend)"));
+    }
 
-    if (failures.length === 0) {
+    if (failures.length === 0 && warnings.length === 0) {
       p.outro(`${chalk.green("✓ All checks passed")} for ${domain}`);
       process.exit(0);
     }
 
-    p.note(failures.map((f) => `- ${f}`).join("\n"), "Fixes needed");
-    p.outro(chalk.red(`Test failed (${failures.length} checks)`));
-    process.exit(1);
+    if (failures.length > 0) {
+      p.note(failures.map((f) => `- ${f}`).join("\n"), "Fixes needed");
+    }
+    if (warnings.length > 0) {
+      p.note(warnings.map((w) => `- ${w}`).join("\n"), "Recommendations");
+    }
+
+    if (failures.length > 0) {
+      p.outro(chalk.red(`Test failed (${failures.length} errors)`));
+      process.exit(1);
+    } else {
+      p.outro(chalk.yellow(`Test passed with ${warnings.length} warnings`));
+      process.exit(0);
+    }
   });
 
 /**
