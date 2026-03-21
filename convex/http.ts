@@ -39,27 +39,14 @@ const resendWebhook = httpAction(async (ctx, request) => {
         return new Response("Invalid recipient address", { status: 400 });
       }
 
-      // Look up domain and mailbox
-      // In a full implementation, we'd query the database here
-      // For now, just log the event
+      // Parse recipient to get domain and mailbox
       console.log(`Received email for ${toAddress} from ${data.from}`);
 
-      // Store the message via internal mutation
-      // Note: This would need the domain and mailbox IDs from the database
-      /*
-      await ctx.runMutation(internal.pollIncoming.storeIncomingEmail, {
-        domainId: domainId,
-        mailboxId: mailboxId,
-        messageId: data.id,
-        from: { address: data.from, name: data.from_name },
-        to: [{ address: toAddress }],
-        subject: data.subject || "(No subject)",
-        bodyText: data.text,
-        bodyHtml: data.html,
-        snippet: (data.text || "").slice(0, 100),
-        date: Date.now(),
-      });
-      */
+      // TODO: Implement webhook event storage
+      // 1. Query domain by name
+      // 2. Query mailbox by local address
+      // 3. Store message in database
+      // For now, just acknowledge receipt
 
       return new Response(JSON.stringify({ received: true }), {
         status: 200,

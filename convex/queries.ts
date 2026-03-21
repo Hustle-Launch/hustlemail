@@ -445,8 +445,8 @@ export const listUsers = query({
 });
 
 /**
- * Get all domains (for internal use by pollIncoming).
- * Does not require authentication - used by Convex actions.
+ * Get all domains.
+ * Does not require authentication - used by internal actions.
  * @returns Array of all domains.
  */
 export const getAllDomains = query({
@@ -457,8 +457,8 @@ export const getAllDomains = query({
 });
 
 /**
- * Get all mailboxes (for internal use by pollIncoming).
- * Does not require authentication - used by Convex actions.
+ * Get all mailboxes.
+ * Does not require authentication - used by internal actions.
  * @returns Array of all mailboxes.
  */
 export const getAllMailboxes = query({
