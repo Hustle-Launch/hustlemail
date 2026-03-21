@@ -106,12 +106,11 @@ ${chalk.cyan("CNAME Record (Web Mail)")}
 
 /**
  * Cloudflare DNS helper - creates DNS records via Cloudflare API.
- * Supports both API Token (Bearer) and Global API Key (email + key) authentication.
+ * Uses Global API Key (X-Auth-Key header only, no email needed).
  */
 async function createCloudflareRecord(
   zoneId: string,
-  authEmail: string | null,
-  authKey: string,
+  globalApiKey: string,
   record: { type: string; name: string; content: string; priority?: number; proxied?: boolean }
 ): Promise<{ success: boolean; error?: string; id?: string }> {
   const { execSync } = require("child_process");
@@ -129,20 +128,15 @@ async function createCloudflareRecord(
   }
 
   try {
-    let curlCmd = `curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records" `;
+    const response = execSync(
+      `curl -s -X POST "https://api.cloudflare.com/client/v4/zones/${zoneId}/dns_records" \
+        -H "X-Auth-Key: ${globalApiKey}" \
+        -H "Content-Type: application/json" \
+        --data '${JSON.stringify(data)}'`,
+      { encoding: "utf-8" }
+    );
     
-    // Use Bearer token if authEmail is null, otherwise use email + key
-    if (authEmail) {
-      curlCmd += `-H "X-Auth-Email: ${authEmail}" -H "X-Auth-Key: ${authKey}" `;
-    } else {
-      curlCmd += `-H "Authorization: Bearer ${authKey}" `;
-    }
-    
-    curlCmd += `-H "Content-Type: application/json" --data '${JSON.stringify(data)}'`;
-    
-    const response = execSync(curlCmd, { encoding: "utf-8" });
     const result = JSON.parse(response);
-    
     if (result.success) {
       return { success: true, id: result.result?.id };
     } else {
@@ -155,34 +149,27 @@ async function createCloudflareRecord(
 
 /**
  * Get Cloudflare zone ID for a domain.
- * Supports both API Token (Bearer) and Global API Key (email + key) authentication.
+ * Uses Global API Key (X-Auth-Key header only, no email needed).
  */
 async function getCloudflareZoneId(
   domain: string,
-  authEmail: string | null,
-  authKey: string
+  globalApiKey: string
 ): Promise<{ success: boolean; zoneId?: string; error?: string }> {
   const { execSync } = require("child_process");
   
   try {
-    let curlCmd = `curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=${domain}" `;
+    const response = execSync(
+      `curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=${domain}" \
+        -H "X-Auth-Key: ${globalApiKey}" \
+        -H "Content-Type: application/json"`,
+      { encoding: "utf-8" }
+    );
     
-    // Use Bearer token if authEmail is null, otherwise use email + key
-    if (authEmail) {
-      curlCmd += `-H "X-Auth-Email: ${authEmail}" -H "X-Auth-Key: ${authKey}" `;
-    } else {
-      curlCmd += `-H "Authorization: Bearer ${authKey}" `;
-    }
-    
-    curlCmd += `-H "Content-Type: application/json"`;
-    
-    const response = execSync(curlCmd, { encoding: "utf-8" });
     const result = JSON.parse(response);
-    
     if (result.success && result.result?.[0]?.id) {
       return { success: true, zoneId: result.result[0].id };
     } else if (result.errors?.[0]?.code === 9103) {
-      return { success: false, error: "Invalid Cloudflare credentials" };
+      return { success: false, error: "Invalid API key" };
     } else {
       return { success: false, error: result.errors?.[0]?.message || "Zone not found" };
     }
@@ -313,20 +300,16 @@ program
     }
 
     // Cloudflare credentials (only needed if cloudflare selected)
-    let cfEmail: string | null = null;
     let cfApiKey = "";
     let cfZoneId = "";
 
     if (dnsProvider === "cloudflare") {
-      // Check for Cloudflare Global API Key first
+      // Check for Cloudflare Global API Key from environment
       cfApiKey = 
         process.env.CLOUDFLARE_GLOBAL_API_KEY ||
         process.env.CLOUDFLARE_API_KEY ||
         process.env.CF_API_KEY ||
         "";
-
-      // For Global API Key, get email from environment (required)
-      cfEmail = process.env.CLOUDFLARE_EMAIL || process.env.CF_EMAIL || null;
 
       if (!cfApiKey) {
         const keyInput = await p.text({
@@ -340,28 +323,12 @@ program
         }
         cfApiKey = keyInput as string;
       } else {
-        console.log(chalk.dim(`  → Using Cloudflare API key from environment`));
-      }
-
-      // If we still don't have email, prompt for it
-      if (!cfEmail) {
-        const emailInput = await p.text({
-          message: "Cloudflare account email:",
-          placeholder: "you@example.com",
-          validate: (v) => v && v.includes("@") ? undefined : "Valid email required",
-        });
-        if (p.isCancel(emailInput)) {
-          p.cancel("Deploy cancelled");
-          process.exit(0);
-        }
-        cfEmail = emailInput as string;
-      } else {
-        console.log(chalk.dim(`  → Using Cloudflare email: ${cfEmail}`));
+        console.log(chalk.dim(`  → Using Cloudflare Global API Key from environment`));
       }
 
       // Validate and get zone ID
       s.start("Validating Cloudflare credentials");
-      const zoneResult = await getCloudflareZoneId(domain, cfEmail, cfApiKey);
+      const zoneResult = await getCloudflareZoneId(domain, cfApiKey);
       if (!zoneResult.success) {
         s.stop("Cloudflare authentication failed");
         console.log(chalk.red(`  Error: ${zoneResult.error}`));
@@ -567,7 +534,7 @@ program
       let failCount = 0;
 
       for (const record of dnsRecords) {
-        const result = await createCloudflareRecord(cfZoneId, cfEmail, cfApiKey, {
+        const result = await createCloudflareRecord(cfZoneId, cfApiKey, {
           type: record.type,
           name: record.name,
           content: record.content,
@@ -629,7 +596,7 @@ program
     // Add webmail CNAME
     if (dnsProvider === "cloudflare" && cfZoneId) {
       const webmailName = (webmailSubdomain as string).replace(`.${domain}`, "");
-      const result = await createCloudflareRecord(cfZoneId, cfEmail, cfApiKey, {
+      const result = await createCloudflareRecord(cfZoneId, cfApiKey, {
         type: "CNAME",
         name: webmailName,
         content: "hustlemail.app",
