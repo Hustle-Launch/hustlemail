@@ -1,116 +1,41 @@
-# hustlemail TODO
+# Implementation and acceptance checklist
 
-## [2026-02-12] Task: MVP Prototype
+Updated 2026-09-06. Checked items have the evidence described in [docs/VALIDATION.md](docs/VALIDATION.md); automated checks and live observations remain distinct.
 
-### Foundation ✅
-- [x] Monorepo setup (Turborepo, packages structure)
-- [x] Package.json with workspaces
-- [x] Convex project initialization
-- [x] Convex schema (domains, mailboxes, messages, users, spamEvaluations)
-- [x] Config parser package (@hustlemail/config)
+## Completed implementation and validation
 
-### SMTP Ingress ✅
-- [x] SMTP server with smtp-server package
-- [x] Message parsing with mailparser
-- [x] Spam evaluation (blocklist + OpenRouter AI)
-- [x] Store messages in Convex via HTTP actions
-- [x] Attachment handling
-- [x] Dockerfile for deployment
-- [x] README with deployment docs
+- [x] Resend-only configuration and credential environment references; no AI, SMTP host or external-account settings.
+- [x] Literal-only TypeScript reader, JSON import/export and idempotent setup that preserve existing configuration.
+- [x] Read-only provider status/DNS, explicit provisioning/verification and explicit idempotent test-send semantics; no simulated deployment or user commands.
+- [x] Pass 81 JavaScript/TypeScript tests: 37 config/CLI, 19 backend, 18 workspace, 3 sanitizer and 4 native transport tests; separately pass 4 Rust authentication tests.
+- [x] Pass Convex/web/native typechecks, package builds, final web build and native frontend build.
+- [x] Authenticate the local QA owner using Clerk password/test OTP and a signed JWT; bootstrap `notify@uncap.us` in the local deployment.
+- [x] Send a real self-addressed pilot message, retrieve its actual SMTP Message-ID and receive its readable body without duplicate inbound rows.
+- [x] Download the uploaded sent-side attachment byte-exactly (59 bytes).
+- [x] Queue archive with `E` offline and persist it on reconnect; observe archive/restore reactively from an independent second client.
+- [x] Exercise anonymous/cross-user denial, ownership, retry/idempotency, partial-file recovery and invalid-cursor recovery in automated backend tests.
+- [x] Run browser sample-workspace interaction checks; authenticate the compiled native bundle under its exact CSP without CSP console errors.
+- [x] Build and install the Linux ARM64 native binary and desktop launcher; produce its Debian package and verify a mailto launch populates an unsent draft.
+- [x] Sign in inside the actual Linux native app, read the real pilot message and restore the authenticated inbox after a process restart.
+- [x] Build/install/launch the macOS app with a verified local ad-hoc signature; record the limits on visual and signed-release evidence.
+- [x] Build/install/launch the unsigned iOS simulator app; pass 2 UI tests covering reading, keyboard-safe composition, draft reopening and return to setup.
+- [x] Preserve the portable Apple UI runner and platform screenshots/reports.
 
-### Web Mail Client ✅
-- [x] Next.js 15 app setup
-- [x] Clerk auth integration
-- [x] Convex provider setup
-- [x] Inbox view with keyboard navigation (j/k, e, s, r)
-- [x] Message detail view with threading
-- [x] Compose with Tiptap rich text editor
-- [x] Search functionality with filters
-- [x] Labels & archive
-- [x] Command menu (⌘+K)
-- [x] Dark mode default
+## Remaining pilot acceptance
 
-### Landing Page ✅
-- [x] Hero section with animated gradient
-- [x] Animated terminal demo
-- [x] Features overview (6 cards)
-- [x] Pricing table (Free/Simple/Managed)
-- [x] Code example section
-- [x] CTA section
-- [x] Footer with links
-- [x] SEO metadata (OpenGraph, Twitter cards)
+- [ ] Hand off the local mailbox from its QA identity to the intended owner through a fresh deployment or deliberate administrative transfer, then repeat signed-user acceptance.
+- [ ] Correct the development Clerk application's remaining CodeMail display name.
+- [ ] Resolve the Resend download-origin TLS failure and observe byte-complete inbound attachment recovery without duplicating messages or resetting mailbox flags.
+- [ ] Exercise real authenticated mail in the macOS and iOS applications, including attachments and reconnect behavior.
+- [ ] Complete live reply/forward/threading, search and mailbox-action acceptance beyond the specific recorded flows.
+- [ ] Complete prolonged operation and interruption recovery in the chosen daily-use environment; fixture-based retry tests are not live outage evidence.
 
-### Dashboard ✅
-- [x] Domain setup wizard (multi-step flow)
-- [x] DNS record display (MX, SPF, DKIM, DMARC)
-- [x] Mailbox management UI
-- [x] Settings page (API keys, notifications, security, integrations)
-- [x] Analytics page (weekly charts, top senders, spam breakdown)
-- [x] Users page (team management, roles)
-- [x] Security page (DKIM keys, threat monitoring)
+## Release gates
 
-### Convex Backend ✅
-- [x] Queries: listDomains, getDomain, listMailboxes, listMessages, getMessage
-- [x] Queries: searchMessages, getAnalytics, listUsers, getUnreadCounts
-- [x] Mutations: createDomain with DKIM key generation
-- [x] Mutations: createMailbox, deleteMailbox with access control
-- [x] Mutations: markAsRead, toggleStar, archiveMessage, trashMessage
-- [x] Mutations: markAsSpam, updateLabels, deleteMessage
-- [x] Mutations: queueOutboundEmail, syncUser, inviteUserToMailbox
+- [ ] Configure and validate the native content policy for the chosen production Clerk frontend API hostname.
+- [ ] Choose and validate hosted Convex/web deployment, production Clerk configuration and final ownership; no hosted deployment has been published.
+- [ ] Validate physical iOS devices and Apple distribution signing/notarization as applicable.
+- [ ] Validate installer installation/update behavior and supported Linux architectures, then publish the intended distribution artifacts.
+- [ ] Recheck the remaining acceptance gates against the actual release build before claiming production readiness.
 
-### API Routes ✅
-- [x] POST /api/send - Outbound email via Resend
-- [x] POST /api/inbound - Webhook for SMTP server
-- [x] POST /api/webhooks/clerk - User sync from Clerk
-- [x] GET /api/dns/[domain] - DNS record generation and verification
-
-### CLI ✅
-- [x] `hustlemail setup <domain>` command
-- [x] `hustlemail deploy` command
-- [x] `hustlemail status` command
-- [x] `hustlemail dns` command
-- [x] `hustlemail logs` command
-- [x] `hustlemail users list/add` commands
-
-### Deployment ✅
-- [x] Vercel deployment for web - https://hustlemail.vercel.app
-- [x] GitHub repo - https://github.com/michaelmonetized/hustlemail
-
-### Remaining for Full Production
-- [x] Interactive Convex project setup (`bunx convex dev`) ✅
-- [x] Convex deployed: frugal-oriole-112.convex.cloud ✅
-- [x] Create hustlemail-specific Clerk app ✅
-- [x] Fixed Clerk publishable key typo in Vercel (flowmng→flowing) ✅
-- [x] Configured Clerk fallback development host to Vercel URL ✅
-- [x] Add RESEND_API_KEY to Vercel ✅
-- [x] Deploy SMTP server to Fly.io ✅ - hustlemail-smtp.fly.dev (ports 25/587)
-- [x] SMTP server connected to Convex backend ✅
-- [ ] Custom domain (hustlemail.dev) - requires domain purchase
-- [ ] DNS verification automation
-
----
-
-## Completed Commits
-- `3e9b209` feat(api): add email and webhook API routes
-- `ab0ffe6` fix: remove workspace dependency for Vercel deployment
-- `5338868` feat(convex): add queries and mutations for full backend
-- `c7cdb17` feat(dashboard): add full admin dashboard
-- `673d3cd` feat(web): implement mail client with Linear-inspired UI
-- `0032b88` feat(web): enhance landing page with SEO metadata
-- `2087db5` feat(smtp): add SMTP ingress server
-
-## Live URLs
-- **Web App:** https://hustlemail-web.vercel.app
-- **SMTP Server:** hustlemail-smtp.fly.dev (ports 25 & 587)
-- **Convex:** https://dashboard.convex.dev/d/frugal-oriole-112
-- **GitHub:** https://github.com/michaelmonetized/hustlemail
-
-## Stats
-- **Files created:** ~80+
-- **Lines of code:** ~10,000+
-- **Packages:** 3 (config, cli, smtp)
-- **App:** 1 (web)
-- **API Routes:** 4
-- **Dashboard pages:** 7
-- **Convex queries:** 8
-- **Convex mutations:** 12
+Configuration import currently changes a local bootstrap file. It does not change live Convex mailbox settings, provider accounts or deployed polling. Historical February completion checkmarks remain archived and are not release evidence.

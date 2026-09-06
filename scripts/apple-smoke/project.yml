@@ -1,0 +1,22 @@
+name: HustlemailSmoke
+options:
+  deploymentTarget:
+    iOS: "17.0"
+targets:
+  SmokeTests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [SmokeTests]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.hustlemail.smoke.tests
+        GENERATE_INFOPLIST_FILE: YES
+        CODE_SIGNING_ALLOWED: NO
+        SWIFT_VERSION: "5.0"
+schemes:
+  HustlemailSmoke:
+    build:
+      targets:
+        SmokeTests: [test]
+    test:
+      targets: [SmokeTests]

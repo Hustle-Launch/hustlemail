@@ -1,28 +1,20 @@
-/**
- * Sign-up page using Clerk authentication.
- * Catch-all route for Clerk's sign-up flow.
- * @module app/sign-up/page
- */
-
 "use client";
-
 import { SignUp } from "@clerk/nextjs";
-
-/**
- * Sign-up page component with themed Clerk SignUp.
- * @returns The sign-up form centered on the page.
- */
-export default function SignUpPage() {
+import { SetupCard } from "@/components/workspace/setup-card";
+export default function AuthPage() {
+  if (!process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY)
+    return (
+      <SetupCard
+        title="Connect your workspace first."
+        description="Set the Clerk and Convex environment values to enable secure sign-in."
+      >
+        <a href="/">Setup guidance</a>
+        <a href="/demo">Explore the sample inbox</a>
+      </SetupCard>
+    );
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-950">
-      <SignUp
-        appearance={{
-          elements: {
-            rootBox: "mx-auto",
-            card: "bg-zinc-900 border border-zinc-800",
-          },
-        }}
-      />
+    <div className="hm-setup">
+      <SignUp appearance={{ variables: { colorPrimary: "#8e73c9" } }} />
     </div>
   );
 }

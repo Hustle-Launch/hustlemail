@@ -1,0 +1,19 @@
+:root { font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color: #e8ece9; background: #121517; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; }
+button, input { font: inherit; }
+.native-setup { max-width: 470px; margin: 0 auto; padding: max(64px, env(safe-area-inset-top)) 28px 48px; }
+.native-mark { display: grid; place-items: center; width: 50px; height: 50px; border-radius: 15px; background: #d6ed9c; color: #172014; font-size: 36px; font-weight: 750; letter-spacing: -4px; padding-right: 4px; margin-bottom: 36px; }
+.native-eyebrow { font-size: 10px; letter-spacing: .18em; color: #a4b485; font-weight: 650; }
+.native-setup h1 { margin: 14px 0 14px; font-size: 34px; line-height: 1.12; letter-spacing: -1.3px; }
+.native-setup p { font-size: 14px; line-height: 1.65; color: #b4bdb7; }
+.native-setup form { margin-top: 30px; }
+.native-setup label { display: block; margin: 20px 0; font-size: 12px; font-weight: 550; }
+.native-setup input { width: 100%; background: #1c2122; border: 1px solid #586160; border-radius: 8px; padding: 13px; margin-top: 8px; color: #f0f3ee; outline-offset: 3px; font-size: 13px; }
+.native-setup input:focus { outline: 2px solid #d6ed9c; }
+.native-setup .native-caption { font-size: 12px; }
+.native-setup button { cursor: pointer; border: 0; border-radius: 8px; width: 100%; padding: 13px 16px; background: #d6ed9c; color: #172014; font-weight: 650; }
+.native-setup button span { float: right; }
+.native-setup .native-preview { background: transparent; color: #c8d3c8; margin-top: 12px; font-weight: 400; }
+.native-error { color: #ffb4a6 !important; }
+.native-auth, .native-status { min-height: 100dvh; display: grid; place-items: center; padding: env(safe-area-inset-top) 20px env(safe-area-inset-bottom); }

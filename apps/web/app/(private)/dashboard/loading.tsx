@@ -13,7 +13,10 @@ export default function Loading() {
       <div className="rounded-xl border p-6 space-y-4">
         <div className="h-5 w-32 rounded bg-muted animate-pulse" />
         {Array.from({ length: 5 }).map((_, i) => (
-          <div key={i} className="h-12 w-full rounded bg-muted/60 animate-pulse" />
+          <div
+            key={i}
+            className="h-12 w-full rounded bg-muted/60 animate-pulse"
+          />
         ))}
       </div>
     </div>

@@ -1,29 +1,26 @@
-/**
- * Clerk authentication proxy (Next.js 16+ middleware replacement).
- * Protects routes under /(private)/ route group.
- * @module proxy
- */
-
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import type { NextFetchEvent, NextRequest } from "next/server";
 
-/** Route matcher for protected routes. */
-const isPrivateRoute = createRouteMatcher(["/(private)(.*)"]);
-
-/**
- * Clerk middleware that protects private routes.
- * Public routes (homepage, marketing, auth) are not protected.
- */
-export default clerkMiddleware(async (auth, request) => {
-  if (isPrivateRoute(request)) {
-    await auth.protect();
-  }
-});
-
+// Route groups never appear in URLs. Protect the actual application routes.
+const isPrivateRoute = createRouteMatcher(["/mail(.*)", "/dashboard(.*)"]);
+const authenticatedProxy = clerkMiddleware(
+  async (auth, request) => {
+    if (isPrivateRoute(request)) await auth.protect();
+  },
+  { signInUrl: "/sign-in", signUpUrl: "/sign-up" },
+);
+export default function proxy(request: NextRequest, event: NextFetchEvent) {
+  if (
+    !process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY ||
+    !process.env.CLERK_SECRET_KEY
+  )
+    return NextResponse.next();
+  return authenticatedProxy(request, event);
+}
 export const config = {
   matcher: [
-    // Skip Next.js internals and all static files
     "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
-    // Always run for API routes
     "/(api|trpc)(.*)",
   ],
 };

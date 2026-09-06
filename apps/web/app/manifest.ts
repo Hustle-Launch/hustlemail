@@ -1,40 +1,16 @@
-/**
- * PWA Web App Manifest configuration.
- * @module app/manifest
- */
-
 import type { MetadataRoute } from "next";
-
-/**
- * Generates the web app manifest for PWA support.
- * @returns Manifest object with app name, icons, and display settings.
- */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "hustlemail",
-    short_name: "hustlemail",
-    description: "Email infrastructure that lives in your GitHub repo",
+    name: "Hustlemail",
+    short_name: "Hustlemail",
+    description: "Your conversations, front and center.",
     start_url: "/mail/inbox",
     display: "standalone",
-    background_color: "#09090b",
-    theme_color: "#6366f1",
+    background_color: "#15151b",
+    theme_color: "#15151b",
     icons: [
-      {
-        src: "/icon-192.png",
-        sizes: "192x192",
-        type: "image/png",
-      },
-      {
-        src: "/icon-512.png",
-        sizes: "512x512",
-        type: "image/png",
-      },
-      {
-        src: "/icon-512.png",
-        sizes: "512x512",
-        type: "image/png",
-        purpose: "maskable",
-      },
+      { src: "/icon.svg", sizes: "any", type: "image/svg+xml", purpose: "any" },
+      { src: "/icon.png", sizes: "512x512", type: "image/png", purpose: "any" },
     ],
   };
 }

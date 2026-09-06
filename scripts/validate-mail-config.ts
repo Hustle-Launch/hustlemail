@@ -1,30 +1,19 @@
-import { parseMailConfig } from "../packages/config/src/index";
-import { createHash } from "crypto";
-import { pathToFileURL } from "url";
-import { existsSync, readFileSync } from "fs";
-import { resolve } from "path";
+import { readConfig } from "../packages/cli/src/operations";
 
-const configPath = resolve(process.cwd(), "mail.config.ts");
-
-if (!existsSync(configPath)) {
-  console.error("mail.config.ts not found");
-  process.exit(1);
-}
-
-const fileContent = readFileSync(configPath, "utf8");
-const hash = createHash("sha256").update(fileContent).digest("hex");
-
-try {
-  const mod = await import(pathToFileURL(configPath).href);
-  const rawConfig = mod.default ?? mod.config;
-  const parsed = parseMailConfig(rawConfig);
-
-  console.log("mail.config.ts valid");
-  console.log(`domain=${parsed.domain}`);
-  console.log(`boxes=${parsed.boxes.length}`);
-  console.log(`config_sha256=${hash}`);
-} catch (error) {
-  console.error("mail.config.ts validation failed");
-  console.error(error);
-  process.exit(1);
-}
+readConfig(process.argv[2] ?? "mail.config.ts")
+  .then((config) => {
+    console.log(
+      JSON.stringify({
+        valid: true,
+        domain: config.domain,
+        boxes: config.boxes.length,
+        scope: "local configuration only",
+      }),
+    );
+  })
+  .catch(() => {
+    console.error(
+      "Invalid or unsupported mail configuration. Run the CLI config validate command for field paths.",
+    );
+    process.exitCode = 1;
+  });

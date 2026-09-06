@@ -1,0 +1,64 @@
+{
+  "date": "2026-09-06T21:04:10.012Z",
+  "url": "http://localhost:3000/demo",
+  "tests": [
+    {
+      "name": "desktop archive/undo uses focused conversation and restores it",
+      "pass": true
+    },
+    {
+      "name": "search input owns letter keys and Escape restores the list",
+      "pass": true
+    },
+    {
+      "name": "command palette and shortcut help contain keyboard actions",
+      "pass": true
+    },
+    {
+      "name": "typed draft survives close and reload; preview cannot send",
+      "pass": true
+    },
+    {
+      "name": "composer command palette closes without dismissing the draft",
+      "pass": true
+    },
+    {
+      "name": "light/dark preference persists across reload",
+      "pass": true
+    },
+    {
+      "name": "mobile navigation opens and selects a folder without horizontal overflow",
+      "pass": true
+    },
+    {
+      "name": "mobile opens and reads a conversation within the viewport",
+      "pass": true
+    },
+    {
+      "name": "mobile compose fits screen, preserves typed text and disables sending",
+      "pass": true
+    },
+    {
+      "name": "visual viewport resize and offset keep composer controls inside visible bounds",
+      "pass": true
+    },
+    {
+      "name": "no page errors, console errors or hydration warnings",
+      "pass": true
+    }
+  ],
+  "consoleErrors": [],
+  "consoleWarnings": [
+    "Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview",
+    "Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview",
+    "Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview",
+    "Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview",
+    "Clerk: Clerk has been loaded with development keys. Development instances have strict usage limits and should not be used when deploying your application to production. Learn more: https://clerk.com/docs/deployments/overview"
+  ],
+  "pageErrors": [],
+  "screenshots": [
+    "web-desktop.png",
+    "web-mobile.png",
+    "web-mobile-compose.png"
+  ]
+}

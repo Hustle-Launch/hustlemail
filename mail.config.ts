@@ -1,32 +1,11 @@
-export const mail = {
-  domain: "t3.chat",
-  boxes: [
-    "support",
-    "theo",
-    "mark",
-    "phase",
-    "sjobs",
-    "sama",
-    "dario",
-    "em",
-    "noreply",
-    "catch-all",
-    "sales",
-    "susan",
-    "sarah",
-    "laura",
-  ],
-  routes: {
-    support: ["susan", "sarah", "laura"],
-    "catch-all": ["sjobs", "dario", "sama", "em", "theo"],
-    noreply: ["bounce"],
-    sales: ["steve", "elizabeth"],
-  },
-  auth: {
-    provider: "convex", // or "clerk", "convex", "auth0"
-  },
-};
+import { defineMailConfig } from "@hustlemail/config";
 
-// mark@t3.chat
-
-// mail.t3.chat -> t3.chat mail web client
+export default defineMailConfig({
+  version: 1,
+  domain: "uncap.us",
+  boxes: [{ name: "notify", displayName: "Notifications" }],
+  inbound: { provider: "resend" },
+  outbound: { provider: "resend", fromName: "Hustlemail" },
+  credentials: { resendApiKeyEnv: "RESEND_API_KEY" },
+  polling: { intervalMs: 10_000 },
+});

@@ -1,65 +1,23 @@
-/**
- * Root layout for the hustlemail application.
- * Sets up fonts, metadata, and wraps pages in providers.
- * @module app/layout
- */
-
-import type { Metadata } from "next";
-import { Inter, JetBrains_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
 import { Providers } from "@/components/providers";
 import "./globals.css";
+import "@/components/workspace/workspace.css";
 
-/** Inter font for UI text. */
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
-
-/** JetBrains Mono font for code/monospace text. */
-const jetbrainsMono = JetBrains_Mono({
-  subsets: ["latin"],
-  variable: "--font-mono",
-});
-
-/** Site-wide metadata for SEO and social sharing. */
 export const metadata: Metadata = {
-  metadataBase: new URL("https://hustlemail.vercel.app"),
   title: {
-    default: "hustlemail - Email Infrastructure in Your Repo",
-    template: "%s | hustlemail",
+    default: "Hustlemail — A clearer inbox",
+    template: "%s | Hustlemail",
   },
-  description: "Email infrastructure that lives in your GitHub repo. Config as code, deploy like an app, costs pennies.",
-  keywords: ["email", "smtp", "infrastructure", "developer", "api", "typescript"],
-  authors: [{ name: "hustlemail" }],
-  creator: "hustlemail",
-  openGraph: {
-    type: "website",
-    locale: "en_US",
-    url: "https://hustlemail.vercel.app",
-    siteName: "hustlemail",
-    title: "hustlemail - Email Infrastructure in Your Repo",
-    description: "Email infrastructure that lives in your GitHub repo. Config as code, deploy like an app, costs pennies.",
-  },
-  twitter: {
-    card: "summary_large_image",
-    title: "hustlemail - Email Infrastructure in Your Repo",
-    description: "Email infrastructure that lives in your GitHub repo. Config as code, deploy like an app, costs pennies.",
-  },
-  robots: {
-    index: true,
-    follow: true,
-  },
-  icons: {
-    icon: "/favicon.ico",
-    apple: "/icon-192.png",
-  },
+  description:
+    "Your conversations, front and center. A thoughtful, keyboard-first home for your domain email.",
+  icons: { icon: "/icon.svg" },
 };
-
-/**
- * Root layout component.
- * @param children - Page content to render.
- * @returns The HTML document structure.
- */
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#15151b",
+};
 export default function RootLayout({
   children,
 }: {
@@ -67,7 +25,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${inter.variable} ${jetbrainsMono.variable} font-sans antialiased noise`}>
+      <body>
         <Providers>{children}</Providers>
       </body>
     </html>

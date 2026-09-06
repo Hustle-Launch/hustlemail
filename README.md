@@ -1,212 +1,56 @@
-# hustlemail
+# Hustlemail
 
-**Email infrastructure that lives in your GitHub repo.**
+Hustlemail is a keyboard-first mail client for the `notify@uncap.us` pilot. Resend handles sending and receiving. Convex stores mailbox state and runs bounded polling jobs. The web client and Tauri native application share the mail workspace.
 
-```bash
-npx hustlemail setup mycompany.com
-# → mail.config.ts created
-# → DNS records shown
-# → founder@mycompany.com works in hustlemail Web
+The committed configuration is deliberately limited to one mailbox. Native applications for Linux, macOS and iOS are in scope; platform builds, signing and device validation are tracked separately and are not implied by a passing web build.
+
+Current validation: 81 JavaScript/TypeScript tests, 4 Rust authentication tests and all application typechecks pass. The local web pilot authenticates and sends/receives real mail; the installed Linux native app signs in, reads real mail and restores its session after restart. The macOS build launches, and the installed iOS simulator app passes its two preview UI tests. Inbound attachment downloads still encounter a provider-origin TLS failure, personal owner handoff remains pending, and no hosted production release has been published. See the [validation record](docs/VALIDATION.md) for exact observations and remaining native acceptance work.
+
+## Start here
+
+1. Read [the accepted decisions](docs/DECISIONS.md).
+2. Follow [local setup and deployment](DEPLOY.md) for the actual account, credentials and DNS prerequisites.
+3. Run the [configuration CLI](docs/CLI.md) for local validation and explicit provider provisioning.
+4. Check [the implementation checklist](TODO.md) and [validation record](docs/VALIDATION.md) before using this for real mail.
+
+```sh
+npm install
+npm run build --workspace=@hustlemail/config
+npm run build --workspace=@hustlemail/cli
+node packages/cli/dist/index.js setup uncap.us
+npm run config:validate
 ```
 
-## The Pitch
+`setup` creates a local configuration file only when absent. It preserves existing configuration. It does not sign up for services, register a domain, change DNS, or configure a running backend.
 
-You have an idea. You want it to feel real from day 1. Real companies have company email. You shouldn't have to pay $600/year for 5 mailboxes while you're still figuring out if the product works.
+## Configuration
 
-hustlemail is email infrastructure for founders:
-- **Config in code** — `mail.config.ts` defines your mailboxes, routes, and rules
-- **Deploy like an app** — Push to GitHub, email updates instantly
-- **Costs pennies** — Per-domain pricing, not per-seat. Unlimited mailboxes.
-- **Real-time sync** — No "check mail" button. Messages appear instantly.
-
-## Quick Start
-
-```bash
-# Install CLI
-npm install -g @hustlemail/cli
-
-# Set up a domain
-hustlemail setup mycompany.com
-
-# This creates mail.config.ts:
-```
-
-```typescript
-// mail.config.ts
+```ts
 import { defineMailConfig } from "@hustlemail/config";
 
 export default defineMailConfig({
-  domain: "mycompany.com",
-  
-  // "boxes" replaces "mailboxes" (shorter, cleaner)
-  boxes: [
-    "hello",      // hello@mycompany.com
-    "support",    // support@mycompany.com
-    "founders",   // shared inbox
-  ],
-  
-  routes: {
-    // Route support@ to multiple people
-    support: ["alice", "bob"],
-    // Catch-all for unknown addresses
-    "*": ["founders"],
-  },
-  
-  spam: {
-    provider: "openrouter", // AI-powered spam detection
-    threshold: 0.7,
-  },
+  version: 1,
+  domain: "uncap.us",
+  boxes: [{ name: "notify", displayName: "Notifications" }],
+  inbound: { provider: "resend" },
+  outbound: { provider: "resend", fromName: "Hustlemail" },
+  credentials: { resendApiKeyEnv: "RESEND_API_KEY" },
+  polling: { intervalMs: 10_000 },
 });
 ```
 
-```bash
-# Deploy
-git add mail.config.ts
-git commit -m "Add email config"
-git push
+Configuration is data. Validation reads TypeScript literals without executing the file. JSON exports contain environment variable names, never resolved secrets. The current backend bootstraps the fixed pilot mailbox; importing a config changes a local file, not an account or deployed cron. Config display names and `outbound.fromName` are portable metadata; they do not currently change backend mailbox names or sender headers.
 
-# CI validates config on push/PR
-bun run config:validate
-```
+## Repository
 
-Pushes that change `mail.config.ts` now run the **Mail Config Sync** GitHub Action to validate schema and publish pass/fail commit status.
+| Path              | Responsibility                                                      |
+| ----------------- | ------------------------------------------------------------------- |
+| `apps/web`        | Browser client and authenticated mail workspace                     |
+| `apps/native`     | Tauri application for Linux/macOS and iOS targets                   |
+| `convex`          | Authentication, mailbox state, Resend polling and outbound delivery |
+| `packages/config` | Strict schema and non-executing config reader                       |
+| `packages/cli`    | Local config operations and explicit Resend provisioning            |
+| `tests`           | Automated behavior checks                                           |
+| `docs/archive`    | Superseded proposals and old, unverified completion reports         |
 
-## Live Demo
-
-- Public read-only demo inbox: `/demo` (host as `demo.hustlemail.dev` in production)
-- Includes seeded realistic threads + visible DNS records for setup walkthroughs
-
-## Features
-
-### 📧 MVP Email Stack (Current)
-- SMTP ingress (receive mail)
-- Web mail client (included)
-- Outbound sending via Resend
-
-### 🚧 Planned (Phase 2)
-- IMAP proxy (Apple Mail, Outlook, Thunderbird, etc.)
-
-### ⚡ Real-Time
-Built on Convex for instant sync:
-- New emails appear immediately
-- Shared mailboxes with live collaboration
-- No polling, no refresh
-
-### 🔒 Domain Isolated
-Each domain runs on isolated infrastructure:
-- Your data never touches other customers
-- Breach containment by design
-- Full audit trail
-
-### 💰 Why $8/domain Exists
-
-You're not paying for mailbox count. You're paying for a different product category:
-- **Real-time team inboxes** (Convex subscriptions, not periodic polling)
-- **Config-as-code** (`mail.config.ts` in git with review/rollback history)
-- **Per-domain isolation** (domain-scoped infra and blast-radius containment)
-- **Programmatic routing** (TypeScript rules, not checkbox-only admin UI)
-
-| Tier | Price | What You Get |
-|------|-------|--------------|
-| **Free** | $0/mo | BYO API keys (Resend, Convex, OpenRouter) |
-| **Simple** | $8/mo/domain | Managed infra, unlimited mailboxes, real-time sync, git-based config deploys |
-| **Managed** | $80/mo/domain | White-glove onboarding, DNS/auth setup, migration help, deliverability tuning, priority incident response |
-| **Self-Hosted** | Free (OSS) | Run everything yourself |
-
-### hustlemail vs Low-Cost Mail Hosts
-
-| Capability | Migadu ($1.58/mo equiv) | Fastmail | hustlemail ($8/domain) |
-|---|---|---|---|
-| Config in code (`mail.config.ts`) | ❌ | ❌ | ✅ |
-| Git push -> config deploy pipeline | ❌ | ❌ | ✅ |
-| Real-time shared mailbox presence | ❌ | ❌ | ✅ |
-| Per-domain infra isolation model | Limited/shared | Shared | ✅ |
-| Web + programmable routing in TS | ❌ | ❌ | ✅ |
-
-## How It Works
-
-```
-mail.config.ts → Convex Backend → SMTP/Web
-```
-
-1. You write `mail.config.ts` in your repo
-2. Push to GitHub triggers deploy
-3. Convex stores messages with real-time sync
-4. SMTP ingress accepts incoming mail
-5. Web mail gives you a Gmail-like interface
-
-> Note: IMAP client support is planned for Phase 2. Today, mailbox access is through hustlemail Web.
-
-## Web Mail
-
-Access your mail at `mail.yourdomain.com`:
-
-- Threading & conversations
-- Full-text search
-- Labels & filters
-- Keyboard shortcuts
-- Dark mode
-- Mobile responsive
-
-## CLI Commands
-
-```bash
-hustlemail setup <domain>     # Initialize a new domain
-hustlemail deploy             # Deploy config changes
-hustlemail status             # Check domain health
-hustlemail dns                # Show required DNS records
-hustlemail logs               # Stream real-time logs
-hustlemail users list         # List mailbox users
-hustlemail users add <email>  # Add a user
-```
-
-## Self-Hosting
-
-Everything is open source. Run your own:
-
-```bash
-git clone https://github.com/hustlemail/hustlemail
-cd hustlemail
-
-# Deploy Convex backend
-npx convex deploy
-
-# Deploy SMTP ingress — requires a persistent server with static IP
-# (Lambda/Cloudflare Workers/Vercel will NOT work — see ARCHITECTURE.md)
-fly deploy                              # Fly.io (recommended)
-# or
-docker-compose up                       # Docker on any VPS (Hetzner, DO, EC2)
-
-# Deploy web mail
-cd apps/web && vercel deploy
-```
-
-## Documentation
-
-- [Architecture](./ARCHITECTURE.md) — How it all works
-- [Configuration](./docs/configuration.md) — `mail.config.ts` reference
-- [Self-Hosting Guide](./docs/self-hosting.md) — Run your own
-- [API Reference](./docs/api.md) — Programmatic access
-
-## Why Not Just Use Gmail/Google Workspace?
-
-| | Google Workspace | hustlemail |
-|---|---|---|
-| 5 users | $30-90/mo | $8/mo |
-| 50 users | $300-900/mo | $8/mo |
-| Config in code | ❌ | ✅ |
-| Self-host option | ❌ | ✅ |
-| Real-time sync | Polling | Instant |
-| Audit trail | Extra cost | Included |
-
-## Contributing
-
-See [CONTRIBUTING.md](./CONTRIBUTING.md) for development setup.
-
-## License
-
-MIT — See [LICENSE](./LICENSE)
-
----
-
-**hustlemail** — Email shouldn't be a business problem. It should be a configuration problem.
+The current product has no AI features, SMTP server, Gmail connection or Outlook connection. Old proposals and their deployment URLs are retained only in the explicitly marked archive.

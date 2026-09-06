@@ -51,9 +51,13 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <ClerkProvider
       publishableKey={process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-up"
+      signInFallbackRedirectUrl="/mail/inbox"
+      signUpFallbackRedirectUrl="/mail/inbox"
       appearance={{
         variables: {
-          colorPrimary: "#6366f1",
+          colorPrimary: "#8e73c9",
         },
       }}
     >

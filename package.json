@@ -6,18 +6,42 @@
     "build": "turbo build",
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "config:validate": "bun run scripts/validate-mail-config.ts"
+    "config:validate": "tsx scripts/validate-mail-config.ts",
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit -p convex/tsconfig.json && tsc --noEmit -p apps/web/tsconfig.json && tsc --noEmit -p apps/native/tsconfig.json",
+    "dev:web": "npm run dev --workspace @hustlemail/web",
+    "dev:backend": "convex dev",
+    "build:web": "npm run build --workspace @hustlemail/web",
+    "dev:native": "npm run desktop:dev --workspace @hustlemail/native",
+    "build:native": "npm run desktop:build --workspace @hustlemail/native"
   },
   "devDependencies": {
+    "@edge-runtime/vm": "^5.0.0",
+    "@playwright/test": "^1.55.0",
+    "@testing-library/react": "^16.3.0",
     "@types/node": "^22.0.0",
+    "agent-browser": "^0.36.0",
     "convex": "^1.31.7",
+    "convex-helpers": "^0.1.100",
+    "convex-test": "^0.0.41",
+    "jsdom": "^27.0.0",
     "prettier": "^3.4.0",
+    "tsx": "^4.20.0",
     "turbo": "^2.4.0",
-    "typescript": "^5.7.0"
+    "typescript": "^5.7.0",
+    "vitest": "^4.0.0"
   },
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
-  "packageManager": "npm@10.0.0"
+  "packageManager": "npm@11.19.0",
+  "version": "0.2.0",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "allowScripts": {
+    "esbuild": true,
+    "@clerk/shared": true
+  }
 }
