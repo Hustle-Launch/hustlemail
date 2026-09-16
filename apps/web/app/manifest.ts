@@ -11,8 +11,8 @@ import type { MetadataRoute } from "next";
  */
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "hustlemail",
-    short_name: "hustlemail",
+    name: "HustleMail",
+    short_name: "HustleMail",
     description: "Email infrastructure that lives in your GitHub repo",
     start_url: "/mail/inbox",
     display: "standalone",

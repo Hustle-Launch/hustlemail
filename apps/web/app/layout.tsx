@@ -23,26 +23,26 @@ const jetbrainsMono = JetBrains_Mono({
 
 /** Site-wide metadata for SEO and social sharing. */
 export const metadata: Metadata = {
-  metadataBase: new URL("https://hustlemail.vercel.app"),
+  metadataBase: new URL("https://mail.hustlelaunch.com"),
   title: {
-    default: "hustlemail - Email Infrastructure in Your Repo",
-    template: "%s | hustlemail",
+    default: "HustleMail - Email Infrastructure in Your Repo",
+    template: "%s | HustleMail",
   },
   description: "Email infrastructure that lives in your GitHub repo. Config as code, deploy like an app, costs pennies.",
   keywords: ["email", "smtp", "infrastructure", "developer", "api", "typescript"],
-  authors: [{ name: "hustlemail" }],
-  creator: "hustlemail",
+  authors: [{ name: "HustleMail" }],
+  creator: "HustleMail",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://hustlemail.vercel.app",
-    siteName: "hustlemail",
-    title: "hustlemail - Email Infrastructure in Your Repo",
+    url: "https://mail.hustlelaunch.com",
+    siteName: "HustleMail",
+    title: "HustleMail - Email Infrastructure in Your Repo",
     description: "Email infrastructure that lives in your GitHub repo. Config as code, deploy like an app, costs pennies.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "hustlemail - Email Infrastructure in Your Repo",
+    title: "HustleMail - Email Infrastructure in Your Repo",
     description: "Email infrastructure that lives in your GitHub repo. Config as code, deploy like an app, costs pennies.",
   },
   robots: {
