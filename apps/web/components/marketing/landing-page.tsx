@@ -497,7 +497,7 @@ export default function LandingPage() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-500 to-purple-500 flex items-center justify-center">
               <Mail className="w-4 h-4 text-white" />
             </div>
-            <span className="text-xl font-bold text-white">hustlemail</span>
+            <span className="text-xl font-bold text-white">HustleMail</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
             <a
@@ -1093,10 +1093,10 @@ export const mail = {
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-500 to-purple-500 flex items-center justify-center">
                 <Mail className="w-4 h-4 text-white" />
               </div>
-              <span className="text-xl font-bold text-white">hustlemail</span>
+              <span className="text-xl font-bold text-white">HustleMail</span>
             </div>
             <p className="text-sm text-zinc-500">
-              © {new Date().getFullYear()} hustlemail. Infrastructure for
+              © {new Date().getFullYear()} HustleMail. Infrastructure for
               founders.
             </p>
             <div className="flex items-center gap-6">
