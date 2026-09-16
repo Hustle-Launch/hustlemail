@@ -489,7 +489,7 @@ export default function LandingPage() {
   };
 
   return (
-    <main className="relative">
+    <main className="relative overflow-x-hidden">
       {/* NAVIGATION */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-black/50 backdrop-blur-xl">
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
@@ -540,10 +540,10 @@ export default function LandingPage() {
       <section
         ref={heroRef}
         onMouseMove={handleHeroMouseMove}
-        className="relative min-h-dvh flex items-center pt-20 pb-8 lg:pt-24 lg:pb-12"
+        className="relative overflow-hidden min-h-dvh flex items-center pt-20 pb-8 lg:pt-24 lg:pb-12"
       >
         <motion.div
-          className="absolute w-full h-full inset-0 -z-1 text-[6em] opacity-20 mask-no-repeat translate-x-20 translate-y-20 blur-[3px]"
+          className="absolute w-full h-full inset-0 -z-1 overflow-hidden text-[6em] opacity-20 mask-no-repeat translate-x-20 translate-y-20 blur-[3px] pointer-events-none"
           style={{
             maskImage: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, white 12%, transparent 70%)`,
             WebkitMaskImage: `radial-gradient(circle at ${mousePos.x}% ${mousePos.y}%, white 12%, transparent 70%)`,
@@ -724,10 +724,10 @@ export const mail = {
       {/* GROWS WITH YOU */}
       <section
         id="grows-with-you"
-        className="py-32 relative min-h-dvh flex flex-col items-center justify-center"
+        className="py-32 relative overflow-hidden min-h-dvh flex flex-col items-center justify-center"
       >
         <motion.div
-          className="absolute w-full h-full inset-0 -z-1 text-[8em] opacity-30 mask-[radial-gradient(circle_at_left_center,white_12%,transparent_70%)] mask-no-repeat -translate-x-20 blur-[4px]"
+          className="absolute w-full h-full inset-0 -z-1 overflow-hidden text-[8em] opacity-30 mask-[radial-gradient(circle_at_left_center,white_12%,transparent_70%)] mask-no-repeat -translate-x-20 blur-[4px] pointer-events-none"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 0.3, y: 0 }}
           transition={{ duration: 0.5 }}
