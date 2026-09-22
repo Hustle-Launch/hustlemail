@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "echo 'No linter configured'"
+    "lint": "echo 'No linter configured'",
+    "test:indexability": "bun test proxy.test.js"
   },
   "dependencies": {
     "@clerk/nextjs": "^6.37.0",
